@@ -54,9 +54,14 @@
   <!-- ================= 2. 메인 뷰 ================= -->
   <main>
     <header>
-      <div class="header-info">
-        <h2 id="view-title">예산·실적 종합 대시보드</h2>
-        <p id="view-desc">기업지원팀 및 기업SOS팀 소관 지원사업의 2026~2027년 예산 편성 현황 및 실적 통계를 분석합니다.</p>
+      <div style="display:flex; align-items:center; gap:16px;">
+        <button id="desktop-toggle-btn" onclick="toggleSidebarDesktop()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text); padding:4px; display:flex; align-items:center;" title="메뉴 접기/펴기">
+          ☰
+        </button>
+        <div class="header-info">
+          <h2 id="view-title">예산·실적 종합 대시보드</h2>
+          <p id="view-desc">기업지원팀 및 기업SOS팀 소관 지원사업의 2026~2027년 예산 편성 현황 및 실적 통계를 분석합니다.</p>
+        </div>
       </div>
       <div>
         <span style="font-size:0.8rem; background:#f1f5f9; padding:6px 12px; border-radius:20px; font-weight:600; color:#475569;">

@@ -20,7 +20,8 @@
 body { display: flex; height: 100vh; background-color: var(--bg); color: var(--text); overflow: hidden; }
 
 /* Aside (사이드바) */
-aside { width: 310px; background-color: var(--sidebar-bg); color: #fff; display: flex; flex-direction: column; flex-shrink: 0; z-index: 10; transition: max-height 0.3s ease; }
+aside { width: 310px; background-color: var(--sidebar-bg); color: #fff; display: flex; flex-direction: column; flex-shrink: 0; z-index: 10; transition: width 0.3s ease, max-height 0.3s ease; white-space: nowrap; }
+aside.desktop-collapsed { width: 0 !important; overflow: hidden; padding: 0 !important; opacity: 0; }
 .brand { padding: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; }
 .brand-title { font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 .brand-sub { font-size: 0.76rem; color: #94a3b8; margin-top: 4px; display: block; }
@@ -132,3 +133,7 @@ header { background: #ffffff; padding: 16px 32px; border-bottom: 1px solid var(-
   .file-manage-row { flex-direction: column; align-items: flex-start; }
   .file-actions-col { width: 100%; justify-content: flex-end; margin-top: 10px; }
 }
+
+    @media (max-width: 768px) {
+      #desktop-toggle-btn { display: none !important; }
+    }

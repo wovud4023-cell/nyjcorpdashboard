@@ -1,5 +1,112 @@
+
+async function fetchExcelFromGitHub() {
+  try {
+    // data.xlsx 파일 자동 로드 (캐시 무효화 파라미터 추가)
+    const res = await fetch('./data.xlsx?v=' + new Date().getTime());
+    if (!res.ok) throw new Error('업로드된 data.xlsx 파일을 찾을 수 없습니다. 기본 데이터를 사용합니다.');
+    
+    const arrayBuffer = await res.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    
+    let isDataUpdated = false;
+
+    // [1] '사업현황' 시트가 있으면 대시보드 데이터(지원팀, SOS팀) 업데이트
+    if (workbook.SheetNames.includes('사업현황')) {
+      const bizSheet = workbook.Sheets['사업현황'];
+      const bizRows = XLSX.utils.sheet_to_json(bizSheet, { header: 1 });
+      
+      let newSupport = [];
+      let newProjects = [];
+      
+      bizRows.forEach((cols, idx) => {
+        if (idx === 0) return; // 헤더 스킵
+        if (!cols[0]) return; // 팀구분 없으면 스킵
+        
+        const team = cols[0].toString().trim(); // '지원팀' or 'SOS팀'
+        const obj = {
+          id: 'biz_' + idx,
+          team: team,
+          title: cols[1] || '-',
+          shortTitle: cols[2] || '-',
+          badge: '총 ' + (Math.round(parseInt(cols[3] || 0) / 1000)).toLocaleString() + '백만',
+          finance: { 
+            total: parseInt(cols[3] || 0), 
+            city: parseInt(cols[4] || 0), 
+            prov: parseInt(cols[5] || 0), 
+            nat: parseInt(cols[6] || 0), 
+            matching: cols[8] || '-', 
+            agency: cols[7] || '-' 
+          },
+          desc: cols[9] || '-',
+          plans: [{ title: '엑셀 데이터 연동됨', budget: '확인완료', desc: 'GitHub에 업로드된 엑셀(data.xlsx)에서 로드된 자료입니다.' }]
+        };
+        
+        if (team === '지원팀') newSupport.push(obj);
+        else newProjects.push(obj);
+      });
+      
+      if (newSupport.length > 0) {
+         SUPPORT_TEAM_DATA.length = 0; 
+         SUPPORT_TEAM_DATA.push(...newSupport);
+      }
+      if (newProjects.length > 0) {
+         PROJECTS_DATA.length = 0; 
+         PROJECTS_DATA.push(...newProjects);
+      }
+      isDataUpdated = true;
+    }
+
+    // [2] '애로사항' 시트가 있으면 민원 현황 업데이트
+    const grievanceSheetName = workbook.SheetNames.includes('애로사항') ? '애로사항' : (workbook.SheetNames.includes('사업현황') ? null : workbook.SheetNames[0]);
+    
+    if (grievanceSheetName) {
+       const worksheet = workbook.Sheets[grievanceSheetName];
+       const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+       let parsedData = [];
+       rows.forEach((cols, idx) => {
+         if (idx === 0) return;
+         if (!cols || cols.length === 0 || cols.every(cell => !cell)) return;
+         parsedData.push({
+           corpName: cols[1] || cols[0] || '-',
+           location: cols[2] || '-',
+           field: cols[3] || '-',
+           grievanceContent: cols[4] || '-',
+           consultContent: cols[5] || '-',
+           processContent: cols[6] || '-',
+           rawStatus: (cols[7] || cols[cols.length - 1] || '검토').toString().trim()
+         });
+       });
+       
+       if (parsedData.length > 0) {
+         renderGrievanceTable(parsedData);
+         isDataUpdated = true;
+       } else {
+         loadGrievanceData(); 
+       }
+    } else {
+       loadGrievanceData(); 
+    }
+
+    // 데이터가 업데이트 되었으면 UI 다시 그리기
+    if (isDataUpdated) {
+      renderSidebarMenu();
+      renderDashboardCards();
+      initCharts();
+      console.log('GitHub data.xlsx 파일로부터 데이터를 성공적으로 업데이트 했습니다.');
+    }
+
+  } catch (err) {
+    console.warn(err.message);
+    loadGrievanceData(); // 엑셀 파일이 없으면 기존 로직(data.js 및 로컬스토리지) 실행
+  }
+}
 let currentDetailBizId = null;
 let singleFiles = {};
+
+function toggleSidebarDesktop() {
+  const aside = document.querySelector('aside');
+  aside.classList.toggle('desktop-collapsed');
+}
 
 function toggleSidebar() {
   const aside = document.querySelector('aside');
@@ -11,7 +118,10 @@ function initApp() {
   renderSidebarMenu();
   renderDashboardCards();
   initCharts();
-  loadGrievanceData();
+  
+  // 기존 방식인 loadGrievanceData() 대신 깃허브 엑셀 자동 로드 호출
+  // 엑셀이 없으면 내부적으로 기존 데이터를 로드합니다.
+  fetchExcelFromGitHub();
 }
 
 function renderSidebarMenu() {
