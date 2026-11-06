@@ -12,7 +12,6 @@ const catMap = {
 const nyjColors = ['#002978', '#009fe3', '#e6007e', '#ef7d00', '#00a760', '#b39b70'];
 let donutChartInst = null;
 let barChartInst = null;
-let singleFiles = {};
 
 function toggleSidebar() {
   const sidebar = document.querySelector('aside');
@@ -79,7 +78,12 @@ async function fetchExcelData() {
             plans: parsedPlans,
             target: cols[11] || '-',
             applyInfo: cols[12] || '-',
-            contact: cols[13] || '-'
+            contact: cols[13] || '-',
+            docs: {
+                official: cols[15] ? cols[15].toString().trim() : '',
+                plan: cols[16] ? cols[16].toString().trim() : '',
+                status: cols[17] ? cols[17].toString().trim() : ''
+            }
           });
         });
       }
@@ -107,7 +111,6 @@ async function fetchExcelData() {
     console.error("데이터 로드 실패:", e);
   }
 
-  loadFilesFromStorage();
   updateDashboardStats();
   renderSidebarMenu();
   renderDashboardCards();
@@ -242,7 +245,7 @@ function openProjectDetail(bizId) {
     </div>
   `;
 
-  renderAttachmentRows(bizId);
+  renderAttachmentRows(proj);
   switchDetailTab('plan');
 }
 
@@ -260,26 +263,10 @@ const FILE_CATS = [
   { key: 'status', name: '추진현황 / 접수내역 및 정산서', badge: 'badge-amber' }
 ];
 
-function loadFilesFromStorage() {
-  try {
-    const saved = localStorage.getItem('nyj2026_files_v1');
-    if (saved) singleFiles = JSON.parse(saved);
-  } catch (e) {}
-}
-
-function saveFilesToStorage() {
-  try {
-    localStorage.setItem('nyj2026_files_v1', JSON.stringify(singleFiles));
-  } catch (e) {
-    alert('저장 공간 초과');
-  }
-}
-
-function renderAttachmentRows(bizId) {
+function renderAttachmentRows(proj) {
   document.getElementById('detail-attachments-container').innerHTML = FILE_CATS.map(cat => {
-    const fKey = `${bizId}_${cat.key}`;
-    const file = singleFiles[fKey];
-    const isRegistered = Boolean(file && file.name);
+    const filename = proj.docs[cat.key];
+    const isRegistered = Boolean(filename && filename.length > 0);
 
     return `
       <div class="file-manage-row">
@@ -290,19 +277,14 @@ function renderAttachmentRows(bizId) {
           </div>
           <div style="font-size:0.83rem; margin-top:2px;">
             ${isRegistered 
-              ? `<span style="display:inline-flex; align-items:center; gap:4px; color:#059669; font-weight:700; background:#dcfce7; padding:2px 8px; border-radius:6px; font-size:0.78rem;">✓ 등록완료</span> <span style="color:#334155; font-weight:600; margin-left:4px;">${file.name}</span>` 
-              : `<span style="color:#94a3b8; font-style:italic;">미등록 상태 (공문, 추진계획서, 정산서 등 관련 파일을 업로드하세요)</span>`}
+              ? `<span style="display:inline-flex; align-items:center; gap:4px; color:#059669; font-weight:700; background:#dcfce7; padding:2px 8px; border-radius:6px; font-size:0.78rem;">✓ 엑셀 연동됨</span> <span style="color:#334155; font-weight:600; margin-left:4px;">${filename}</span>` 
+              : `<span style="color:#94a3b8; font-style:italic;">미등록 상태 (data.xlsx 엑셀에 파일명을 입력하세요)</span>`}
           </div>
         </div>
         <div class="file-actions-col">
-          <input type="file" id="file-${fKey}" style="display:none;" onchange="handleFileUpload(event, '${bizId}', '${cat.key}')">
-          <button class="btn-upload-file" onclick="document.getElementById('file-${fKey}').click()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            업로드
-          </button>
-          <button class="btn-download-file ${isRegistered ? '' : 'disabled'}" onclick="downloadFile('${bizId}', '${cat.key}')">
+          <button class="btn-download-file ${isRegistered ? '' : 'disabled'}" onclick="downloadFileGitHub('${filename}')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            다운로드
+            서버 다운로드
           </button>
         </div>
       </div>
@@ -310,26 +292,14 @@ function renderAttachmentRows(bizId) {
   }).join('');
 }
 
-function handleFileUpload(event, bizId, catKey) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    singleFiles[`${bizId}_${catKey}`] = { name: file.name, dataUrl: e.target.result };
-    saveFilesToStorage();
-    renderAttachmentRows(bizId);
-    alert(`[${file.name}] 등록이 완료되었습니다.`);
-  };
-  reader.readAsDataURL(file);
-}
-
-function downloadFile(bizId, catKey) {
-  const file = singleFiles[`${bizId}_${catKey}`];
-  if (!file) return alert('등록된 파일이 없습니다.');
+function downloadFileGitHub(filename) {
+  if (!filename) return alert('등록된 파일이 없습니다.');
   const a = document.createElement('a');
-  a.href = file.dataUrl;
-  a.download = file.name;
+  a.href = './' + filename;
+  a.download = filename;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
 }
 
 function filterDashboard() {
@@ -438,7 +408,7 @@ function handleExcelUpload(event) {
 
 function clearGrievanceData() {
   fetchExcelData();
-  alert('기본 데이터 복원 기능은 삭제되었습니다. 깃허브 원본 엑셀 데이터를 다시 불러왔습니다.');
+  alert('깃허브 데이터로 다시 연동되었습니다.');
 }
 
 function showManual(type) {
