@@ -55,9 +55,9 @@
       <div id="dynamic-nav-cat4" class="nav-sub-container"></div>
 
       <div class="nav-section-title">별도 관리 메뉴</div>
-      <li class="nav-item" onclick="switchView('grievance')">
+      <li class="nav-item" id="nav-grievance" onclick="switchView('grievance')">
         <span>💬 기업애로사항 접수·관리</span>
-        <span class="nav-badge" style="background:#ef4444; color:#fff;">현황조회</span>
+        <span class="nav-badge" style="background:#ef4444; color:#fff;">🔒 잠금</span>
       </li>
 
       <div class="nav-section-title">업무 참고</div>
@@ -208,6 +208,17 @@
         </div>
       </div>
 
+      <!-- 뷰 2.5: 비밀번호 입력 화면 -->
+      <div id="view-password" class="view-panel hidden" style="display:flex; justify-content:center; align-items:center; padding:40px;">
+        <div class="doc-viewer-card" style="max-width: 450px; width: 100%; text-align:center; padding: 40px 30px;">
+          <div style="font-size:3rem; margin-bottom:15px;">🔒</div>
+          <h3 style="color:var(--primary); font-size:1.4rem; margin-bottom:10px;">관리자 권한 인증</h3>
+          <p style="color:#64748b; font-size:0.9rem; margin-bottom:24px; line-height:1.5;">기업애로사항 접수·관리 센터는 민감한 정보를 포함하고 있어 관리자 비밀번호 입력이 필요합니다.</p>
+          <input type="password" id="auth-password" class="search-input" placeholder="비밀번호를 입력하세요" style="width:100%; padding:12px; font-size:1rem; text-align:center; margin-bottom:16px;" onkeypress="if(event.key === 'Enter') verifyPassword();">
+          <button class="tab-btn active" style="width:100%; background:var(--primary); color:#fff; font-size:1rem; padding:12px; border-radius:8px; cursor:pointer;" onclick="verifyPassword()">접속하기</button>
+        </div>
+      </div>
+
       <!-- 뷰 3: 기업애로사항 관리 -->
       <div id="view-grievance" class="view-panel hidden">
         <div class="filter-card">
@@ -220,7 +231,7 @@
           <div style="display:flex; gap:8px;">
             <input type="file" id="excelUpload" accept=".csv, .xlsx, .xls" style="display: none;" onchange="handleExcelUpload(event)">
             <button class="tab-btn active" style="background:var(--primary); color:#fff; border-radius:6px; padding:6px 14px; cursor:pointer;" onclick="document.getElementById('excelUpload').click();">📁 엑셀 업로드 갱신</button>
-            <button class="tab-btn" style="background:#fee2e2; color:#dc2626; border-radius:6px; padding:6px 14px; cursor:pointer;" onclick="clearGrievanceData();">🗑️ 기본 데이터 복원</button>
+            <button class="tab-btn" style="background:#fee2e2; color:#dc2626; border-radius:6px; padding:6px 14px; cursor:pointer;" onclick="clearGrievanceData();">🗑️ 서버 데이터 새로고침</button>
           </div>
         </div>
 

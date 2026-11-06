@@ -13,6 +13,11 @@ const nyjColors = ['#002978', '#009fe3', '#e6007e', '#ef7d00', '#00a760', '#b39b
 let donutChartInst = null;
 let barChartInst = null;
 
+// 보안 접근 플래그
+let isGrievanceUnlocked = false;
+// 'sos8220'의 SHA-256 해시값 (프론트엔드 코드에 원본 비밀번호 노출 방지)
+const TARGET_HASH = "43ca49cf349f794f591fdc429a0801a628dfc7bbf4f5cbcc03c09578136f33d1"; 
+
 function toggleSidebar() {
   const sidebar = document.querySelector('aside');
   const overlay = document.getElementById('overlay');
@@ -183,7 +188,44 @@ function renderDashboardCards() {
   document.getElementById('searchResultCount').innerText = `총 ${PROJECTS_DATA.length}개 사업 표시 중`;
 }
 
+// SHA-256 해시 함수 (비밀번호 암호화 비교용)
+async function hashPassword(message) {
+  const msgBuffer = new TextEncoder('utf-8').encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// 비밀번호 검증 로직
+async function verifyPassword() {
+  const inputEl = document.getElementById("auth-password");
+  const inputHash = await hashPassword(inputEl.value);
+  
+  if (inputHash === TARGET_HASH) {
+    isGrievanceUnlocked = true;
+    inputEl.value = ""; // 입력창 초기화
+    
+    // 잠금 아이콘 풀림 상태로 변경
+    const navBadge = document.querySelector("#nav-grievance .nav-badge");
+    if(navBadge) {
+        navBadge.innerText = "현황조회";
+        navBadge.style.background = "#059669"; // 초록색으로 변경
+    }
+    
+    switchView('grievance'); // 실제 화면으로 이동
+  } else {
+    alert("비밀번호가 일치하지 않습니다.");
+    inputEl.value = "";
+    inputEl.focus();
+  }
+}
+
 function switchView(viewId) {
+  // 기업애로 관리 탭 클릭 시, 잠금 해제 상태가 아니면 비밀번호 화면으로 강제 이동
+  if (viewId === 'grievance' && !isGrievanceUnlocked) {
+    viewId = 'password';
+  }
+
   document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const target = document.getElementById(`view-${viewId}`);
@@ -191,6 +233,7 @@ function switchView(viewId) {
 
   const meta = {
     'dashboard': { title: '2026년 남양주시 기업 지원시책 종합 대시보드', desc: '기술지원·자금지원·판로개척·기업환경개선 4대 분야 총 26개 대표 기업지원사업 및 예산액 현황 분석' },
+    'password':  { title: '관리자 권한 인증', desc: '민감한 기업애로사항 정보를 보호하기 위한 보안 페이지입니다.' },
     'grievance': { title: '💬 기업애로사항 접수·관리', desc: '관내 기업체 현장 애로사항 접수 목록 및 상태·지역별 통계를 조회합니다.' },
     'manual':    { title: '📖 업무매뉴얼', desc: '맞춤형 기업애로 해결사업(e호조) 및 기업환경개선사업(보탬e) 업무 지침 가이드' }
   };
@@ -199,8 +242,11 @@ function switchView(viewId) {
     document.getElementById('view-title').innerText = meta[viewId].title;
     document.getElementById('view-desc').innerText = meta[viewId].desc;
   }
+  
   if (viewId === 'dashboard') {
     document.querySelector('.nav-list .nav-item:first-of-type').classList.add('active');
+  } else if (viewId === 'password' || viewId === 'grievance') {
+    document.getElementById('nav-grievance').classList.add('active');
   }
 }
 
@@ -267,7 +313,6 @@ function renderAttachmentRows(proj) {
   document.getElementById('detail-attachments-container').innerHTML = FILE_CATS.map(cat => {
     const filename = proj.docs[cat.key];
     const isRegistered = Boolean(filename && filename.length > 0);
-    // URL 인코딩 처리 추가
     const safeFilename = encodeURIComponent(filename);
 
     return `
