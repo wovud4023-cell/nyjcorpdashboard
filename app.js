@@ -145,13 +145,18 @@ function updateDashboardStats() {
     document.getElementById('sidebar-cat4-budget').innerText = toUk(catBudgets[4]);
 }
 
-// 사이드바 메뉴 생성
+// 사이드바 메뉴 생성 (사업별 금액 뱃지 추가)
 function renderSidebarMenu() {
   const makeNavItem = (p) => `
-    <li class="nav-item sub-item" id="nav-${p.id}" onclick="openProjectDetail('${p.id}')">
-      <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${p.title}">${p.shortTitle}</span>
+    <li class="nav-item sub-item" style="padding: 7px 12px 7px 24px; font-size: 0.82rem; position: relative; display: flex; justify-content: space-between; align-items: center;" id="nav-${p.id}" onclick="openProjectDetail('${p.id}')">
+      <div style="overflow:hidden; display:flex; align-items:center;">
+        <span style="position: absolute; left: 8px; top: 7px; color: #64748b;">└</span>
+        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-left:4px;" title="${p.title}">${p.shortTitle}</span>
+      </div>
+      <span style="font-size: 0.65rem; background: rgba(255,255,255,0.15); color: #cbd5e1; padding: 2px 6px; border-radius: 10px; margin-left: 6px; white-space: nowrap;">${p.badge}</span>
     </li>
   `;
+  
   document.getElementById('dynamic-nav-cat1').innerHTML = PROJECTS_DATA.filter(p => p.catId === 1).map(makeNavItem).join('');
   document.getElementById('dynamic-nav-cat2').innerHTML = PROJECTS_DATA.filter(p => p.catId === 2).map(makeNavItem).join('');
   document.getElementById('dynamic-nav-cat3').innerHTML = PROJECTS_DATA.filter(p => p.catId === 3).map(makeNavItem).join('');
