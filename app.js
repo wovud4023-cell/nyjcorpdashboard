@@ -267,6 +267,8 @@ function renderAttachmentRows(proj) {
   document.getElementById('detail-attachments-container').innerHTML = FILE_CATS.map(cat => {
     const filename = proj.docs[cat.key];
     const isRegistered = Boolean(filename && filename.length > 0);
+    // URL 인코딩 처리 추가
+    const safeFilename = encodeURIComponent(filename);
 
     return `
       <div class="file-manage-row">
@@ -282,7 +284,7 @@ function renderAttachmentRows(proj) {
           </div>
         </div>
         <div class="file-actions-col">
-          <button class="btn-download-file ${isRegistered ? '' : 'disabled'}" onclick="downloadFileGitHub('${filename}')">
+          <button class="btn-download-file ${isRegistered ? '' : 'disabled'}" onclick="window.open('./${safeFilename}', '_blank')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             서버 다운로드
           </button>
@@ -290,16 +292,6 @@ function renderAttachmentRows(proj) {
       </div>
     `;
   }).join('');
-}
-
-function downloadFileGitHub(filename) {
-  if (!filename) return alert('등록된 파일이 없습니다.');
-  const a = document.createElement('a');
-  a.href = './' + filename;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
 }
 
 function filterDashboard() {
