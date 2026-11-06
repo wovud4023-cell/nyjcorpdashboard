@@ -145,22 +145,23 @@ function updateDashboardStats() {
     document.getElementById('sidebar-cat4-budget').innerText = toUk(catBudgets[4]);
 }
 
-// 사이드바 메뉴 생성 (사업별 금액 뱃지 추가)
+// 사이드바 메뉴 생성 (분야별 뱃지 색상 통일)
 function renderSidebarMenu() {
-  const makeNavItem = (p) => `
+  const makeNavItem = (p, badgeBgColor) => `
     <li class="nav-item sub-item" style="padding: 7px 12px 7px 24px; font-size: 0.82rem; position: relative; display: flex; justify-content: space-between; align-items: center;" id="nav-${p.id}" onclick="openProjectDetail('${p.id}')">
       <div style="overflow:hidden; display:flex; align-items:center;">
         <span style="position: absolute; left: 8px; top: 7px; color: #64748b;">└</span>
         <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-left:4px;" title="${p.title}">${p.shortTitle}</span>
       </div>
-      <span style="font-size: 0.65rem; background: rgba(255,255,255,0.15); color: #cbd5e1; padding: 2px 6px; border-radius: 10px; margin-left: 6px; white-space: nowrap;">${p.badge}</span>
+      <span style="font-size: 0.65rem; background: ${badgeBgColor}; color: #ffffff; padding: 2px 6px; border-radius: 10px; margin-left: 6px; white-space: nowrap; font-weight: 700;">${p.badge}</span>
     </li>
   `;
   
-  document.getElementById('dynamic-nav-cat1').innerHTML = PROJECTS_DATA.filter(p => p.catId === 1).map(makeNavItem).join('');
-  document.getElementById('dynamic-nav-cat2').innerHTML = PROJECTS_DATA.filter(p => p.catId === 2).map(makeNavItem).join('');
-  document.getElementById('dynamic-nav-cat3').innerHTML = PROJECTS_DATA.filter(p => p.catId === 3).map(makeNavItem).join('');
-  document.getElementById('dynamic-nav-cat4').innerHTML = PROJECTS_DATA.filter(p => p.catId === 4).map(makeNavItem).join('');
+  // 각 분야별 메인 컬러에 맞춰 뱃지 색상(badgeBgColor) 부여
+  document.getElementById('dynamic-nav-cat1').innerHTML = PROJECTS_DATA.filter(p => p.catId === 1).map(p => makeNavItem(p, '#2563eb')).join(''); // 1. 기술지원 (블루)
+  document.getElementById('dynamic-nav-cat2').innerHTML = PROJECTS_DATA.filter(p => p.catId === 2).map(p => makeNavItem(p, '#7c3aed')).join(''); // 2. 자금지원 (퍼플)
+  document.getElementById('dynamic-nav-cat3').innerHTML = PROJECTS_DATA.filter(p => p.catId === 3).map(p => makeNavItem(p, '#059669')).join(''); // 3. 판로개척 (그린)
+  document.getElementById('dynamic-nav-cat4').innerHTML = PROJECTS_DATA.filter(p => p.catId === 4).map(p => makeNavItem(p, '#d97706')).join(''); // 4. 기업환경개선 (오렌지)
 }
 
 // 메인 카드 생성
