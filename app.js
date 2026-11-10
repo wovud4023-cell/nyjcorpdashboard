@@ -9,30 +9,29 @@ const catMap = {
   '기업환경개선': { id: 4, sub: '기업하기 좋은 도시 남양주' }
 };
 
-const nyjColors = ['#002978', '#009fe3', '#e6007e', '#ef7d00', '#00a760', '#b39b70'];
 let donutChartInst = null;
 let barChartInst = null;
 
 // 보안 접근 플래그
 let isGrievanceUnlocked = false;
-// 'sos8220'의 SHA-256 해시값 (프론트엔드 코드에 원본 비밀번호 노출 방지)
+// 'sos8220'의 SHA-256 해시값 
 const TARGET_HASH = "43ca49cf349f794f591fdc429a0801a628dfc7bbf4f5cbcc03c09578136f33d1"; 
 
 function toggleSidebar() {
-  const sidebar = document.querySelector('aside');
+  const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('overlay');
   if (window.innerWidth <= 768) {
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('show');
+    sidebar.classList.toggle('-translate-x-full');
+    overlay.classList.toggle('hidden');
   } else {
-    sidebar.classList.toggle('desktop-collapsed');
+    // Desktop collapse logic if needed, currently hidden on desktop
   }
 }
 
 window.addEventListener('resize', () => {
   if (window.innerWidth > 768) {
-    document.querySelector('aside').classList.remove('open');
-    document.getElementById('overlay').classList.remove('show');
+    document.getElementById('sidebar').classList.remove('-translate-x-full');
+    document.getElementById('overlay').classList.add('hidden');
   }
 });
 
@@ -124,6 +123,25 @@ async function fetchExcelData() {
   renderGrievanceTables(GRIEVANCE_DATA);
 }
 
+function animateNumber(elementId, targetVal, isBillion) {
+    const el = document.getElementById(elementId);
+    if(!el) return;
+    let current = 0;
+    const increment = targetVal / 40; 
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= targetVal) {
+            clearInterval(timer);
+            current = targetVal;
+        }
+        if(isBillion) {
+            el.innerHTML = current.toFixed(2) + '<span class="text-sm font-bold ml-1">억</span>';
+        } else {
+            el.innerHTML = current.toFixed(2);
+        }
+    }, 20);
+}
+
 function updateDashboardStats() {
   let total = 0, cityFund = 0, prov = 0;
   let catBudgets = { 1: 0, 2: 0, 3: 0, 4: 0 };
@@ -135,60 +153,61 @@ function updateDashboardStats() {
     if (catBudgets[p.catId] !== undefined) catBudgets[p.catId] += p.finance.total;
   });
 
-  const toUk = (v) => (v / 100000).toFixed(2) + '억원';
-  document.getElementById('banner-total-budget').innerText = toUk(total);
-  document.getElementById('banner-total-count').innerText = `2026년 남양주시 4대 분야 ${PROJECTS_DATA.length}개 대표 시책 예산액 총 ${total.toLocaleString()}천원 편성 현황`;
-  document.getElementById('banner-city-budget').innerText = toUk(cityFund);
-  document.getElementById('banner-prov-budget').innerText = toUk(prov);
-
-  document.getElementById('sidebar-total-budget').innerText = toUk(total);
-  document.getElementById('sidebar-cat1-budget').innerText = toUk(catBudgets[1]);
-  document.getElementById('sidebar-cat2-budget').innerText = toUk(catBudgets[2]);
-  document.getElementById('sidebar-cat3-budget').innerText = toUk(catBudgets[3]);
-  document.getElementById('sidebar-cat4-budget').innerText = toUk(catBudgets[4]);
+  document.getElementById('banner-total-count').innerText = `2026년 남양주시 4대 분야 ${PROJECTS_DATA.length}개 대표 시책 예산액 현황`;
+  
+  animateNumber('banner-total-budget', total / 100000, true);
+  animateNumber('banner-city-budget', cityFund / 100000, true);
+  
+  document.getElementById('sidebar-total-budget').innerText = (total / 100000).toFixed(2) + '억';
+  document.getElementById('sidebar-cat1-budget').innerText = (catBudgets[1] / 100000).toFixed(2) + '억';
+  document.getElementById('sidebar-cat2-budget').innerText = (catBudgets[2] / 100000).toFixed(2) + '억';
+  document.getElementById('sidebar-cat3-budget').innerText = (catBudgets[3] / 100000).toFixed(2) + '억';
+  document.getElementById('sidebar-cat4-budget').innerText = (catBudgets[4] / 100000).toFixed(2) + '억';
 }
 
 function renderSidebarMenu() {
-  const makeNavItem = (p, badgeBgColor) => `
-    <li class="nav-item sub-item" style="padding: 7px 12px 7px 24px; font-size: 0.82rem; position: relative; display: flex; justify-content: space-between; align-items: center;" id="nav-${p.id}" onclick="openProjectDetail('${p.id}')">
-      <div style="overflow:hidden; display:flex; align-items:center;">
-        <span style="position: absolute; left: 8px; top: 7px; color: #64748b;">└</span>
-        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-left:4px;" title="${p.title}">${p.shortTitle}</span>
-      </div>
-      <span style="font-size: 0.65rem; background: ${badgeBgColor}; color: #ffffff; padding: 2px 6px; border-radius: 10px; margin-left: 6px; white-space: nowrap; font-weight: 700;">${p.badge}</span>
-    </li>
+  const makeNavItem = (p) => `
+    <div class="nav-item-hover px-3 py-2 rounded-lg flex justify-between items-center cursor-pointer transition-all border-l-2 border-transparent hover:border-gray-300" id="nav-${p.id}" onclick="openProjectDetail('${p.id}')">
+      <span class="text-xs text-gray-600 font-medium truncate pr-2 w-full" title="${p.title}">· ${p.shortTitle}</span>
+    </div>
   `;
 
-  document.getElementById('dynamic-nav-cat1').innerHTML = PROJECTS_DATA.filter(p => p.catId === 1).map(p => makeNavItem(p, '#2563eb')).join('');
-  document.getElementById('dynamic-nav-cat2').innerHTML = PROJECTS_DATA.filter(p => p.catId === 2).map(p => makeNavItem(p, '#7c3aed')).join('');
-  document.getElementById('dynamic-nav-cat3').innerHTML = PROJECTS_DATA.filter(p => p.catId === 3).map(p => makeNavItem(p, '#059669')).join('');
-  document.getElementById('dynamic-nav-cat4').innerHTML = PROJECTS_DATA.filter(p => p.catId === 4).map(p => makeNavItem(p, '#d97706')).join('');
+  document.getElementById('dynamic-nav-cat1').innerHTML = PROJECTS_DATA.filter(p => p.catId === 1).map(p => makeNavItem(p)).join('');
+  document.getElementById('dynamic-nav-cat2').innerHTML = PROJECTS_DATA.filter(p => p.catId === 2).map(p => makeNavItem(p)).join('');
+  document.getElementById('dynamic-nav-cat3').innerHTML = PROJECTS_DATA.filter(p => p.catId === 3).map(p => makeNavItem(p)).join('');
+  document.getElementById('dynamic-nav-cat4').innerHTML = PROJECTS_DATA.filter(p => p.catId === 4).map(p => makeNavItem(p)).join('');
 }
 
 function renderDashboardCards() {
   const grid = document.getElementById('searchableCardsGrid');
   grid.innerHTML = PROJECTS_DATA.map(p => {
-    let badgeColor = p.catId === 2 ? 'badge-purple' : p.catId === 3 ? 'badge-green' : p.catId === 4 ? 'badge-amber' : 'badge-blue';
+    let borderColor = p.catId === 2 ? 'border-t-purple-500' : p.catId === 3 ? 'border-t-green-500' : p.catId === 4 ? 'border-t-orange-500' : 'border-t-blue-600';
+    let badgeBg = p.catId === 2 ? 'bg-purple-100 text-purple-700' : p.catId === 3 ? 'bg-green-100 text-green-700' : p.catId === 4 ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700';
+
     return `
-      <div class="content-box searchable-card" data-category="${p.catName}">
-        <div class="box-header">
-          <span class="box-title" style="color:var(--primary);">${p.title}</span>
-          <span class="box-badge ${badgeColor}">${p.badge}</span>
+      <div class="glass-card rounded-2xl p-6 flex flex-col justify-between group border-t-4 ${borderColor} searchable-card" data-category="${p.catName}">
+        <div>
+          <div class="flex justify-between items-start mb-4 gap-2">
+            <h3 class="text-base md:text-lg font-bold text-gray-800 leading-tight group-hover:text-nyjBlue transition-colors">${p.title}</h3>
+            <span class="text-xs font-bold px-2 py-1 rounded-md ${badgeBg} whitespace-nowrap shadow-sm">${p.badge}</span>
+          </div>
+          <p class="text-sm text-gray-600 mb-6 leading-relaxed line-clamp-3">${p.desc}</p>
         </div>
-        <div class="box-desc">• ${p.desc}</div>
-        <div style="font-size:0.78rem; color:#64748b; margin-bottom:10px;">
-          <b>수행:</b> ${p.finance.agency} | <b>분야:</b> ${p.catName}
+        <div>
+          <div class="text-xs text-gray-500 mb-4 bg-white/50 p-2 rounded-lg border border-white">
+            <span class="font-bold text-gray-700">수행:</span> ${p.finance.agency}
+          </div>
+          <button class="w-full py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-nyjBlue font-bold rounded-xl text-sm transition-all border border-blue-100 shadow-sm" onclick="openProjectDetail('${p.id}')">
+            상세내용 및 문서 관리 &rarr;
+          </button>
         </div>
-        <button class="tab-btn" style="background:#f0f7ff; color:var(--primary); font-weight:700; border-radius:6px; padding:6px; width:100%; border:1px solid var(--primary-light);" onclick="openProjectDetail('${p.id}')">
-          상세내용 및 핵심문서 관리 &rarr;
-        </button>
       </div>
     `;
   }).join('');
-  document.getElementById('searchResultCount').innerText = `총 ${PROJECTS_DATA.length}개 사업 표시 중`;
+  document.getElementById('searchResultCount').innerText = `총 ${PROJECTS_DATA.length}개`;
 }
 
-// SHA-256 해시 함수 (비밀번호 암호화 비교용)
+// SHA-256 해시 함수
 async function hashPassword(message) {
   const msgBuffer = new TextEncoder('utf-8').encode(message);
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -196,23 +215,23 @@ async function hashPassword(message) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// 비밀번호 검증 로직
+// 비밀번호 검증
 async function verifyPassword() {
   const inputEl = document.getElementById("auth-password");
   const inputHash = await hashPassword(inputEl.value);
   
   if (inputHash === TARGET_HASH) {
     isGrievanceUnlocked = true;
-    inputEl.value = ""; // 입력창 초기화
+    inputEl.value = ""; 
     
-    // 잠금 아이콘 풀림 상태로 변경
-    const navBadge = document.querySelector("#nav-grievance .nav-badge");
-    if(navBadge) {
-        navBadge.innerText = "현황조회";
-        navBadge.style.background = "#059669"; // 초록색으로 변경
+    const badge = document.getElementById("grievance-badge");
+    if(badge) {
+        badge.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg> 조회`;
+        badge.className = "text-[0.7rem] bg-green-100 text-green-700 px-2 py-0.5 rounded-full border border-green-200 shadow-sm font-bold flex items-center gap-1";
     }
+    document.getElementById("nav-grievance").querySelector('svg').classList.replace('text-red-400', 'text-green-500');
     
-    switchView('grievance'); // 실제 화면으로 이동
+    switchView('grievance'); 
   } else {
     alert("비밀번호가 일치하지 않습니다.");
     inputEl.value = "";
@@ -221,21 +240,31 @@ async function verifyPassword() {
 }
 
 function switchView(viewId) {
-  // 기업애로 관리 탭 클릭 시, 잠금 해제 상태가 아니면 비밀번호 화면으로 강제 이동
-  if (viewId === 'grievance' && !isGrievanceUnlocked) {
-    viewId = 'password';
+  if (viewId === 'grievance' && !isGrievanceUnlocked) viewId = 'password';
+
+  document.querySelectorAll('.view-panel').forEach(el => {
+      el.classList.add('hidden');
+      el.classList.remove('active');
+  });
+  
+  document.querySelectorAll('.nav-item-active').forEach(el => {
+      if(el.id === 'nav-dashboard') {
+          el.classList.remove('nav-item-active');
+          el.classList.add('text-gray-600');
+      }
+  });
+
+  const target = document.getElementById(`view-${viewId}`);
+  if (target) {
+      target.classList.remove('hidden');
+      target.classList.add('active');
   }
 
-  document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  const target = document.getElementById(`view-${viewId}`);
-  if (target) target.classList.remove('hidden');
-
   const meta = {
-    'dashboard': { title: '2026년 남양주시 기업 지원시책 종합 대시보드', desc: '기술지원·자금지원·판로개척·기업환경개선 4대 분야 총 26개 대표 기업지원사업 및 예산액 현황 분석' },
-    'password':  { title: '관리자 권한 인증', desc: '민감한 기업애로사항 정보를 보호하기 위한 보안 페이지입니다.' },
-    'grievance': { title: '💬 기업애로사항 접수·관리', desc: '관내 기업체 현장 애로사항 접수 목록 및 상태·지역별 통계를 조회합니다.' },
-    'manual':    { title: '📖 업무매뉴얼', desc: '맞춤형 기업애로 해결사업(e호조) 및 기업환경개선사업(보탬e) 업무 지침 가이드' }
+    'dashboard': { title: '2026 기업 지원시책 대시보드', desc: '기술지원·자금지원·판로개척·기업환경개선 종합 현황 분석' },
+    'password':  { title: '관리자 권한 인증', desc: '민감한 정보를 보호하기 위한 보안 페이지입니다.' },
+    'grievance': { title: '기업애로사항 접수·관리', desc: '관내 기업체 현장 애로사항 목록 및 통계를 조회합니다.' },
+    'project-detail': { title: '사업 상세정보', desc: '해당 시책의 세부 추진계획 및 관련 문서를 관리합니다.' }
   };
 
   if (meta[viewId]) {
@@ -244,9 +273,9 @@ function switchView(viewId) {
   }
   
   if (viewId === 'dashboard') {
-    document.querySelector('.nav-list .nav-item:first-of-type').classList.add('active');
-  } else if (viewId === 'password' || viewId === 'grievance') {
-    document.getElementById('nav-grievance').classList.add('active');
+    const dNav = document.getElementById('nav-dashboard');
+    dNav.classList.add('nav-item-active');
+    dNav.classList.remove('text-gray-600');
   }
 }
 
@@ -255,9 +284,6 @@ function openProjectDetail(bizId) {
   if (!proj) return;
 
   switchView('project-detail');
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  const navEl = document.getElementById(`nav-${bizId}`);
-  if (navEl) navEl.classList.add('active');
 
   document.getElementById('view-title').innerText = proj.title;
   document.getElementById('view-desc').innerText = `${proj.catName} - ${proj.catSub} | ${proj.desc}`;
@@ -266,28 +292,28 @@ function openProjectDetail(bizId) {
 
   const fmt = v => v === 0 ? '-' : v.toLocaleString() + '천원';
   document.getElementById('fin-total').innerText = fmt(proj.finance.total);
-  document.getElementById('fin-city').innerHTML = proj.finance.fund > 0 ? `${fmt(proj.finance.city)} <span style="font-size:0.75rem; color:#d97706;">(기금: ${fmt(proj.finance.fund)})</span>` : fmt(proj.finance.city);
+  document.getElementById('fin-city').innerHTML = proj.finance.fund > 0 ? `${fmt(proj.finance.city)} <br><span class="text-[0.65rem] text-orange-600">(기금: ${fmt(proj.finance.fund)})</span>` : fmt(proj.finance.city);
   document.getElementById('fin-prov').innerText = fmt(proj.finance.prov);
   document.getElementById('fin-nat').innerText = fmt(proj.finance.nat);
   document.getElementById('fin-matching').innerText = proj.finance.matching;
   document.getElementById('fin-exec').innerText = proj.finance.agency;
 
   document.getElementById('detail-tab-plan').innerHTML = proj.plans.map(pl => `
-    <div class="content-box">
-      <div class="box-header">
-        <span class="box-title" style="color:var(--primary);">${pl.title}</span>
-        <span class="box-badge badge-green">${pl.budget}</span>
+    <div class="bg-white/60 p-5 rounded-2xl border border-white shadow-sm">
+      <div class="flex justify-between items-start mb-3 gap-2">
+        <span class="font-bold text-nyjBlue text-sm">${pl.title}</span>
+        <span class="text-[0.65rem] font-bold bg-green-100 text-green-700 px-2 py-1 rounded-md whitespace-nowrap">${pl.budget}</span>
       </div>
-      <div class="box-desc" style="white-space: pre-wrap;">• ${pl.desc}</div>
+      <div class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">${pl.desc}</div>
     </div>
   `).join('');
 
   document.getElementById('detail-history-custom').innerHTML = `
-    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:20px; line-height:1.7;">
-      <h4 style="font-size:1rem; color:var(--primary); margin-bottom:12px; font-weight:700;">📌 신청방법 및 문의처 세부안내</h4>
-      <p style="font-size:0.86rem; color:#334155; margin-bottom:8px;"><b>지원 대상:</b> ${proj.target}</p>
-      <p style="font-size:0.86rem; color:#334155; margin-bottom:8px;"><b>신청 방법 및 기간:</b> ${proj.applyInfo}</p>
-      <p style="font-size:0.86rem; color:#334155; margin-bottom:8px;"><b>문의처 및 담당부서:</b> ${proj.contact}</p>
+    <h4 class="text-sm font-bold text-nyjBlue mb-3 border-l-4 border-nyjSkyBlue pl-2">신청방법 및 문의처 세부안내</h4>
+    <div class="space-y-2 text-xs text-gray-600">
+        <p><b class="text-gray-700">지원 대상:</b> ${proj.target}</p>
+        <p><b class="text-gray-700">신청 방법:</b> ${proj.applyInfo}</p>
+        <p><b class="text-gray-700">문의 부서:</b> ${proj.contact}</p>
     </div>
   `;
 
@@ -297,16 +323,27 @@ function openProjectDetail(bizId) {
 
 function switchDetailTab(type) {
   const isPlan = (type === 'plan');
-  document.getElementById('tab-btn-plan').classList.toggle('active', isPlan);
-  document.getElementById('tab-btn-history').classList.toggle('active', !isPlan);
-  document.getElementById('detail-tab-plan').classList.toggle('hidden', !isPlan);
-  document.getElementById('detail-tab-history').classList.toggle('hidden', isPlan);
+  
+  const btnPlan = document.getElementById('tab-btn-plan');
+  const btnHist = document.getElementById('tab-btn-history');
+  
+  if(isPlan) {
+      btnPlan.className = "flex-1 py-4 text-sm font-bold text-nyjBlue border-b-2 border-nyjBlue bg-white transition-colors";
+      btnHist.className = "flex-1 py-4 text-sm font-bold text-gray-500 border-b-2 border-transparent hover:bg-white/80 transition-colors";
+      document.getElementById('detail-tab-plan').classList.remove('hidden');
+      document.getElementById('detail-tab-history').classList.add('hidden');
+  } else {
+      btnHist.className = "flex-1 py-4 text-sm font-bold text-nyjBlue border-b-2 border-nyjBlue bg-white transition-colors";
+      btnPlan.className = "flex-1 py-4 text-sm font-bold text-gray-500 border-b-2 border-transparent hover:bg-white/80 transition-colors";
+      document.getElementById('detail-tab-history').classList.remove('hidden');
+      document.getElementById('detail-tab-plan').classList.add('hidden');
+  }
 }
 
 const FILE_CATS = [
-  { key: 'official', name: '사업관련 공문', badge: 'badge-blue' },
-  { key: 'plan', name: '추진계획 및 사업계획서', badge: 'badge-green' },
-  { key: 'status', name: '추진현황 / 접수내역 및 정산서', badge: 'badge-amber' }
+  { key: 'official', name: '사업관련 공문', badge: 'bg-blue-100 text-blue-700 border-blue-200' },
+  { key: 'plan', name: '추진계획/계획서', badge: 'bg-green-100 text-green-700 border-green-200' },
+  { key: 'status', name: '추진현황/정산서', badge: 'bg-orange-100 text-orange-700 border-orange-200' }
 ];
 
 function renderAttachmentRows(proj) {
@@ -316,24 +353,22 @@ function renderAttachmentRows(proj) {
     const safeFilename = encodeURIComponent(filename);
 
     return `
-      <div class="file-manage-row">
-        <div class="file-info-col">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <span class="box-badge ${cat.badge}" style="padding:4px 10px; border-radius:6px;">${cat.name}</span>
-            <span style="font-weight:700; font-size:0.92rem; color:var(--text);">${cat.name} 관리</span>
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-white/40 rounded-xl border border-white gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-[0.7rem] font-bold border px-2 py-0.5 rounded-md ${cat.badge}">${cat.name}</span>
+            <span class="text-sm font-bold text-gray-800">문서 연동</span>
           </div>
-          <div style="font-size:0.83rem; margin-top:2px;">
+          <div class="text-xs">
             ${isRegistered 
-              ? `<span style="display:inline-flex; align-items:center; gap:4px; color:#059669; font-weight:700; background:#dcfce7; padding:2px 8px; border-radius:6px; font-size:0.78rem;">✓ 엑셀 연동됨</span> <span style="color:#334155; font-weight:600; margin-left:4px;">${filename}</span>` 
-              : `<span style="color:#94a3b8; font-style:italic;">미등록 상태 (data.xlsx 엑셀에 파일명을 입력하세요)</span>`}
+              ? `<span class="text-green-600 font-bold mr-1">✓ 등록됨:</span> <span class="text-gray-600">${filename}</span>` 
+              : `<span class="text-gray-400 italic">미등록 상태 (data.xlsx에 파일명 입력 필요)</span>`}
           </div>
         </div>
-        <div class="file-actions-col">
-          <button class="btn-download-file ${isRegistered ? '' : 'disabled'}" onclick="window.open('./${safeFilename}', '_blank')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            서버 다운로드
-          </button>
-        </div>
+        <button class="w-full md:w-auto px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1 ${isRegistered ? 'bg-nyjBlue text-white hover:bg-blue-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}" ${isRegistered ? `onclick="window.open('./${safeFilename}', '_blank')"` : 'disabled'}>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          다운로드
+        </button>
       </div>
     `;
   }).join('');
@@ -349,13 +384,13 @@ function filterDashboard() {
     card.style.display = match ? 'flex' : 'none';
     if (match) count++;
   });
-  document.getElementById('searchResultCount').innerText = `총 ${count}개 사업 표시 중`;
+  document.getElementById('searchResultCount').innerText = `총 ${count}개`;
 }
 
 function updateRegionSelect() {
   const select = document.getElementById('regionFilter');
   const regions = [...new Set(GRIEVANCE_DATA.map(item => item.region || '기타'))].sort();
-  select.innerHTML = '<option value="all">전체 지역 보기</option>' + regions.map(r => `<option value="${r}">${r}</option>`).join('');
+  select.innerHTML = '<option value="all">전체 지역</option>' + regions.map(r => `<option value="${r}">${r}</option>`).join('');
 }
 
 function renderGrievanceTables(dataList) {
@@ -366,7 +401,7 @@ function renderGrievanceTables(dataList) {
   tbody.innerHTML = '';
 
   if (!dataList || dataList.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:30px; color:#94a3b8;">데이터가 없습니다.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center p-8 text-gray-400 font-bold">데이터가 없습니다.</td></tr>`;
     return;
   }
 
@@ -381,29 +416,37 @@ function renderGrievanceTables(dataList) {
   });
 
   regionBox.innerHTML = Object.entries(regionCounts).map(([reg, count]) => `
-    <div class="content-box" style="text-align:center; padding:12px;"><div style="font-size:0.8rem; font-weight:700; color:var(--text-muted);">${reg} 지역</div><div style="font-size:1.3rem; color:var(--primary-light); font-weight:800;">${count}건</div></div>
+    <div class="bg-white/50 border border-white p-3 rounded-xl text-center shadow-sm">
+      <div class="text-[0.7rem] font-bold text-gray-500 mb-1">${reg}</div>
+      <div class="text-lg font-black text-nyjGreen">${count}건</div>
+    </div>
   `).join('');
 
   summaryBox.innerHTML = Object.entries(statusCounts).map(([status, count]) => `
-    <div class="content-box" style="text-align:center; padding:12px;"><div style="font-size:0.8rem; font-weight:700; color:var(--text-muted);">${status}</div><div style="font-size:1.3rem; color:var(--primary); font-weight:800;">${count}건</div></div>
+    <div class="bg-white/50 border border-white p-3 rounded-xl text-center shadow-sm">
+      <div class="text-[0.7rem] font-bold text-gray-500 mb-1">${status}</div>
+      <div class="text-lg font-black text-nyjBlue">${count}건</div>
+    </div>
   `).join('');
 
   let filteredData = dataList.filter(item => selectedRegion === 'all' || item.region === selectedRegion);
 
   filteredData.forEach((item, idx) => {
-    let badgeStyle = 'background: #fef9c3; color: #a16207;';
-    if (item.rawStatus.includes('진행 중')) badgeStyle = 'background: #dcfce7; color: #15803d;';
-    else if (item.rawStatus.includes('불가')) badgeStyle = 'background: #fee2e2; color: #dc2626;';
-    else if (item.rawStatus.includes('완료')) badgeStyle = 'background: #dbeafe; color: #1d4ed8;';
+    let badgeStyle = 'bg-yellow-100 text-yellow-700 border-yellow-200';
+    if (item.rawStatus.includes('진행 중')) badgeStyle = 'bg-green-100 text-green-700 border-green-200';
+    else if (item.rawStatus.includes('불가')) badgeStyle = 'bg-red-100 text-red-700 border-red-200';
+    else if (item.rawStatus.includes('완료')) badgeStyle = 'bg-blue-100 text-blue-700 border-blue-200';
 
     tbody.innerHTML += `
-      <tr>
-        <td style="text-align:center; font-weight:700; color:var(--primary);">${idx + 1}</td>
-        <td><b>${item.corpName}</b></td><td>${item.location}</td>
-        <td><span class="box-badge badge-blue">${item.region}</span></td>
-        <td>${item.field}</td><td>${item.grievanceContent}</td>
-        <td>${item.consultContent}</td><td>${item.processContent}</td>
-        <td style="text-align:center;"><span class="box-badge" style="${badgeStyle}">${item.rawStatus}</span></td>
+      <tr class="hover:bg-gray-50/50 transition-colors">
+        <td class="p-3 text-center font-bold text-gray-400">${idx + 1}</td>
+        <td class="p-3 font-bold text-gray-800">${item.corpName}</td>
+        <td class="p-3 text-gray-600">${item.location}</td>
+        <td class="p-3"><span class="text-[0.65rem] px-2 py-1 bg-gray-100 rounded-md font-bold text-gray-600 whitespace-nowrap">${item.region}</span></td>
+        <td class="p-3 text-gray-600 whitespace-nowrap">${item.field}</td>
+        <td class="p-3 text-gray-600 leading-relaxed">${item.grievanceContent}</td>
+        <td class="p-3 text-gray-600 leading-relaxed border-l border-gray-100"><span class="block mb-1 font-bold text-nyjSkyBlue">상담:</span>${item.consultContent}<br><span class="block mt-2 font-bold text-nyjBlue">처리:</span>${item.processContent}</td>
+        <td class="p-3 text-center"><span class="text-[0.7rem] font-bold px-2 py-1 rounded-md border whitespace-nowrap ${badgeStyle}">${item.rawStatus}</span></td>
       </tr>
     `;
   });
@@ -448,16 +491,6 @@ function clearGrievanceData() {
   alert('깃허브 데이터로 다시 연동되었습니다.');
 }
 
-function showManual(type) {
-  const box = document.getElementById('manual-detail-box');
-  box.classList.remove('hidden');
-  const isEhojo = (type === 'ehojo');
-  document.getElementById('manual-detail-title').innerText = isEhojo ? '💰 e호조 회계지출 프로세스 매뉴얼' : '📦 보탬e 보조금 교부정산 매뉴얼';
-  document.getElementById('manual-detail-desc').innerHTML = isEhojo 
-    ? '세부사업계획 등록 ➔ 예산과목 배정 ➔ 지출품의 ➔ 지출원인행위 확정 ➔ 지급명령 및 계좌이체' 
-    : '보조사업 공모 및 신청 접수 ➔ 심의위원회 선정평가 ➔ 보조금 교부결정 통보 ➔ 집행 모니터링 ➔ 실적보고서 검사 및 정산반납 확정';
-}
-
 function initCharts() {
   if (donutChartInst) donutChartInst.destroy();
   if (barChartInst) barChartInst.destroy();
@@ -475,8 +508,10 @@ function initCharts() {
   });
 
   const totalOverall = Object.values(catBudgets).reduce((a, b) => a + b, 0);
-  const donutDesc = document.getElementById('chart-donut-desc');
-  if (donutDesc) donutDesc.innerText = `총 ${(totalOverall / 1000).toLocaleString()}천원 기준`;
+  document.getElementById('chart-donut-desc').innerText = `총 ${(totalOverall / 100000).toFixed(2)}억원`;
+
+  Chart.defaults.font.family = "'Pretendard', sans-serif";
+  Chart.defaults.color = "#64748b";
 
   const donutCtx = document.getElementById('categoryDonutChart').getContext('2d');
   donutChartInst = new Chart(donutCtx, {
@@ -485,28 +520,34 @@ function initCharts() {
       labels: ['1. 기술지원', '2. 자금지원', '3. 판로개척', '4. 기업환경개선'],
       datasets: [{
         data: [catBudgets[1], catBudgets[2], catBudgets[3], catBudgets[4]],
-        backgroundColor: [nyjColors[1], nyjColors[2], nyjColors[4], nyjColors[3]],
-        borderWidth: 2,
+        backgroundColor: ['#002978', '#009fe3', '#00a760', '#ef7d00'],
+        borderWidth: 3,
         borderColor: '#ffffff',
-        hoverOffset: 6
+        hoverOffset: 8
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15, font: { size: 11, weight: 'bold' } } },
         tooltip: {
+          backgroundColor: 'rgba(255,255,255,0.9)',
+          titleColor: '#1e293b',
+          bodyColor: '#1e293b',
+          borderColor: '#e2e8f0',
+          borderWidth: 1,
+          padding: 12,
           callbacks: {
             label: function(ctx) {
               const val = ctx.raw;
               const pct = ((val / totalOverall) * 100).toFixed(1);
-              return ` ${ctx.label}: ${val.toLocaleString()}천원 (${pct}%)`;
+              return ` ${ctx.label}: ${(val/100000).toFixed(2)}억원 (${pct}%)`;
             }
           }
         }
       },
-      cutout: '66%'
+      cutout: '68%'
     }
   });
 
@@ -516,20 +557,20 @@ function initCharts() {
     data: {
       labels: ['기술지원', '자금지원', '판로개척', '기업환경개선'],
       datasets: [
-        { label: '시비', data: [catCity[1] / 1000, catCity[2] / 1000, catCity[3] / 1000, catCity[4] / 1000], backgroundColor: nyjColors[0], borderRadius: 4 },
-        { label: '도비', data: [catProv[1] / 1000, catProv[2] / 1000, catProv[3] / 1000, catProv[4] / 1000], backgroundColor: nyjColors[4], borderRadius: 4 },
-        { label: '국비/기금', data: [catNatFund[1] / 1000, catNatFund[2] / 1000, catNatFund[3] / 1000, catNatFund[4] / 1000], backgroundColor: nyjColors[3], borderRadius: 4 }
+        { label: '시비', data: [catCity[1] / 100000, catCity[2] / 100000, catCity[3] / 100000, catCity[4] / 100000], backgroundColor: '#002978', borderRadius: 4 },
+        { label: '도비', data: [catProv[1] / 100000, catProv[2] / 100000, catProv[3] / 100000, catProv[4] / 100000], backgroundColor: '#00a760', borderRadius: 4 },
+        { label: '국비/기금', data: [catNatFund[1] / 100000, catNatFund[2] / 100000, catNatFund[3] / 100000, catNatFund[4] / 100000], backgroundColor: '#ef7d00', borderRadius: 4 }
       ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: { stacked: true },
-        y: { stacked: true, ticks: { callback: v => v + '백만' } }
+        x: { stacked: true, grid: { display: false } },
+        y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v + '억' } }
       },
       plugins: {
-        legend: { position: 'top', labels: { boxWidth: 10, font: { size: 11 } } }
+        legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11, weight: 'bold' } } }
       }
     }
   });

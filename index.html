@@ -4,301 +4,392 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>2026년 남양주시 기업 지원시책 종합 대시보드</title>
-  <!-- Chart.js CDN -->
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- SheetJS (xlsx) 라이브러리 -->
+  <!-- SheetJS -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <!-- 외부 CSS 및 JS를 별도 파일로 분리하여 연결 -->
-  <link rel="stylesheet" href="style.css">
+  <!-- 로컬 app.js 연결 -->
   <script src="app.js" defer></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            nyjBlue: '#002978',
+            nyjSkyBlue: '#009fe3',
+            nyjGreen: '#00a760',
+            nyjOrange: '#ef7d00',
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'fade-in': 'fadeIn 0.5s ease-out forwards',
+            'slide-up': 'slideUp 0.5s ease-out forwards',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-15px)' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { opacity: '0', transform: 'translateY(20px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    body { 
+      font-family: 'Pretendard', sans-serif; 
+      background: linear-gradient(135deg, #f0f4f8 0%, #e0e8f0 100%);
+      overflow: hidden; 
+    }
+    
+    /* Background Blobs */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: -1;
+      opacity: 0.5;
+    }
+    .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: rgba(0, 159, 227, 0.3); animation: float 10s infinite; }
+    .blob-2 { bottom: -20%; right: -10%; width: 60vw; height: 60vw; background: rgba(0, 167, 96, 0.2); animation: float 14s infinite reverse; }
+
+    /* Glassmorphism */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+    
+    .glass-card {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .glass-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 24px rgba(0, 41, 120, 0.1);
+      background: rgba(255, 255, 255, 0.9);
+      border-color: #009fe3;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 41, 120, 0.2); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 41, 120, 0.4); }
+
+    /* Nav Items */
+    .nav-item-active {
+      background: linear-gradient(90deg, rgba(0, 41, 120, 0.1) 0%, transparent 100%);
+      border-left: 4px solid #002978;
+      font-weight: 700;
+      color: #002978;
+    }
+    .nav-item-hover:hover {
+      background-color: rgba(255,255,255, 0.5);
+      transform: translateX(4px);
+    }
+    
+    .view-panel { display: none; }
+    .view-panel.active { display: block; animation: fadeIn 0.5s ease-out forwards; }
+  </style>
 </head>
-<body>
+<body class="flex h-screen text-gray-800 relative">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
 
-  <!-- 모바일 배경 오버레이 -->
-  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-
-  <!-- 사이드바 -->
-  <aside>
-    <!-- 남양주시 로고 적용 -->
-    <div class="brand">
-      <img src="시그니처_국영문_좌우조합_남양주.png" alt="남양주시 로고">
+  <!-- Sidebar -->
+  <aside id="sidebar" class="w-80 glass-panel flex flex-col flex-shrink-0 z-20 transition-transform duration-300 transform -translate-x-full md:translate-x-0 absolute md:relative h-full">
+    <div class="p-6 border-b border-white/40 flex items-center justify-between bg-white/50">
+      <img src="시그니처_국영문_좌우조합_남양주.png" alt="남양주시 로고" class="h-10 object-contain drop-shadow-sm">
+      <button onclick="toggleSidebar()" class="md:hidden text-gray-500 hover:text-nyjBlue">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
     </div>
-    <ul class="nav-list" id="nav-list-container">
-      <div class="nav-section-title">종합 대시보드</div>
-      <li class="nav-item active" onclick="switchView('dashboard')">
-        <span>📊 2026 시책 총괄 대시보드</span>
-        <span class="nav-badge" id="sidebar-total-budget" style="background:var(--primary); color:#fff;">52.31억원</span>
-      </li>
-
-      <div class="nav-section-title" style="border-left: 3px solid #2563eb; padding-left: 8px;">
-        <span>1. 기술지원 (6개)</span>
-        <span id="sidebar-cat1-budget" style="font-size:0.7rem; font-weight:700; color:#60a5fa; background:rgba(37,99,235,0.15); padding:2px 6px; border-radius:10px;">10.51억</span>
-      </div>
-      <div id="dynamic-nav-cat1" class="nav-sub-container"></div>
-
-      <div class="nav-section-title" style="border-left: 3px solid #7c3aed; padding-left: 8px;">
-        <span>2. 자금지원 (5개)</span>
-        <span id="sidebar-cat2-budget" style="font-size:0.7rem; font-weight:700; color:#c084fc; background:rgba(124,58,237,0.15); padding:2px 6px; border-radius:10px;">23.47억</span>
-      </div>
-      <div id="dynamic-nav-cat2" class="nav-sub-container"></div>
-
-      <div class="nav-section-title" style="border-left: 3px solid #059669; padding-left: 8px;">
-        <span>3. 판로개척 (9개)</span>
-        <span id="sidebar-cat3-budget" style="font-size:0.7rem; font-weight:700; color:#4ade80; background:rgba(5,150,105,0.15); padding:2px 6px; border-radius:10px;">7.48억</span>
-      </div>
-      <div id="dynamic-nav-cat3" class="nav-sub-container"></div>
-
-      <div class="nav-section-title" style="border-left: 3px solid #d97706; padding-left: 8px;">
-        <span>4. 기업환경개선 (6개)</span>
-        <span id="sidebar-cat4-budget" style="font-size:0.7rem; font-weight:700; color:#fcd34d; background:rgba(217,119,6,0.15); padding:2px 6px; border-radius:10px;">10.85억</span>
-      </div>
-      <div id="dynamic-nav-cat4" class="nav-sub-container"></div>
-
-      <div class="nav-section-title">별도 관리 메뉴</div>
-      <li class="nav-item" id="nav-grievance" onclick="switchView('grievance')">
-        <span>💬 기업애로사항 접수·관리</span>
-        <span class="nav-badge" style="background:#ef4444; color:#fff;">🔒 잠금</span>
-      </li>
-
-      <div class="nav-section-title">업무 참고</div>
-      <li class="nav-item" onclick="switchView('manual')">
-        <span>📖 업무매뉴얼</span>
-        <span class="nav-badge" style="background:#06b6d4; color:#fff;">e호조·보탬e</span>
-      </li>
-    </ul>
-  </aside>
-
-  <!-- 메인 뷰 -->
-  <main>
-    <header>
-      <div style="display:flex; align-items:center; gap:12px;">
-        <button class="menu-toggle" onclick="toggleSidebar()" aria-label="메뉴 토글">☰</button>
-        <div class="header-info">
-          <h2 id="view-title">2026년 남양주시 기업 지원시책 종합 대시보드</h2>
-          <p id="view-desc">기술지원·자금지원·판로개척·기업환경개선 4대 분야 총 26개 대표 기업지원사업 및 예산액 현황 분석</p>
+    
+    <div class="flex-1 overflow-y-auto p-4 space-y-6">
+      <div>
+        <div class="text-xs font-bold text-gray-400 mb-2 px-3 tracking-wider">DASHBOARD</div>
+        <div id="nav-dashboard" class="nav-item-active nav-item-hover p-3 rounded-lg flex justify-between items-center cursor-pointer transition-all" onclick="switchView('dashboard')">
+          <span class="flex items-center gap-2">
+            <svg class="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+            2026 총괄 현황
+          </span>
+          <span id="sidebar-total-budget" class="text-[0.7rem] bg-nyjBlue text-white px-2 py-0.5 rounded-full shadow-sm">0.00억</span>
         </div>
       </div>
+
+      <div class="space-y-4">
+        <!-- 1. 기술지원 -->
+        <div>
+          <div class="text-xs font-bold text-blue-600 mb-1 px-3 border-l-2 border-blue-600 flex justify-between">
+            <span>1. 기술지원 (6개)</span>
+            <span id="sidebar-cat1-budget" class="bg-blue-100 text-blue-700 px-2 rounded-full">0억</span>
+          </div>
+          <div id="dynamic-nav-cat1" class="pl-2 space-y-1"></div>
+        </div>
+        <!-- 2. 자금지원 -->
+        <div>
+          <div class="text-xs font-bold text-purple-600 mb-1 px-3 border-l-2 border-purple-600 flex justify-between">
+            <span>2. 자금지원 (5개)</span>
+            <span id="sidebar-cat2-budget" class="bg-purple-100 text-purple-700 px-2 rounded-full">0억</span>
+          </div>
+          <div id="dynamic-nav-cat2" class="pl-2 space-y-1"></div>
+        </div>
+        <!-- 3. 판로개척 -->
+        <div>
+          <div class="text-xs font-bold text-green-600 mb-1 px-3 border-l-2 border-green-600 flex justify-between">
+            <span>3. 판로개척 (9개)</span>
+            <span id="sidebar-cat3-budget" class="bg-green-100 text-green-700 px-2 rounded-full">0억</span>
+          </div>
+          <div id="dynamic-nav-cat3" class="pl-2 space-y-1"></div>
+        </div>
+        <!-- 4. 기업환경개선 -->
+        <div>
+          <div class="text-xs font-bold text-orange-600 mb-1 px-3 border-l-2 border-orange-600 flex justify-between">
+            <span>4. 기업환경개선 (6개)</span>
+            <span id="sidebar-cat4-budget" class="bg-orange-100 text-orange-700 px-2 rounded-full">0억</span>
+          </div>
+          <div id="dynamic-nav-cat4" class="pl-2 space-y-1"></div>
+        </div>
+      </div>
+
       <div>
-        <span class="header-badge">남양주시청 기업지원과 (기업지원팀 · 기업SOS팀)</span>
+        <div class="text-xs font-bold text-gray-400 mb-2 px-3 tracking-wider mt-4">MANAGEMENT</div>
+        <div id="nav-grievance" class="nav-item-hover text-gray-600 p-3 rounded-lg flex justify-between items-center cursor-pointer transition-all" onclick="switchView('grievance')">
+          <span class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+            기업애로 접수·관리
+          </span>
+          <span id="grievance-badge" class="text-[0.7rem] bg-red-100 text-red-600 px-2 py-0.5 rounded-full border border-red-200 shadow-sm font-bold flex items-center gap-1">
+             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+             잠금
+          </span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div id="overlay" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-10 hidden md:hidden" onclick="toggleSidebar()"></div>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+    <header class="glass-panel border-b-0 border-white/50 px-6 py-4 flex items-center justify-between z-10 mx-4 mt-4 rounded-2xl shadow-sm">
+      <div class="flex items-center gap-4">
+        <button onclick="toggleSidebar()" class="md:hidden p-2 text-nyjBlue bg-white/50 rounded-lg hover:bg-white transition-colors shadow-sm">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <div>
+          <h2 id="view-title" class="text-xl font-extrabold text-nyjBlue tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-nyjBlue to-nyjSkyBlue">
+            2026 기업 지원시책 대시보드
+          </h2>
+          <p id="view-desc" class="text-xs text-gray-500 mt-1 hidden sm:block">기술지원·자금지원·판로개척·기업환경개선 종합 현황 분석</p>
+        </div>
+      </div>
+      <div class="hidden lg:flex items-center gap-2 bg-white/60 px-4 py-2 rounded-full border border-white shadow-sm">
+        <div class="w-2 h-2 rounded-full bg-nyjGreen animate-pulse"></div>
+        <span class="text-xs font-bold text-nyjBlue">기업지원과 기업SOS팀</span>
       </div>
     </header>
 
-    <div class="content-wrap">
-
-      <!-- 뷰 1: 종합 대시보드 -->
-      <div id="view-dashboard" class="view-panel">
-        <div class="summary-banner">
-          <div class="banner-text">
-            <h3>더 좋은 기업 환경, 더 강한 기업 경쟁력, 남양주 경제 대전환!</h3>
-            <p id="banner-total-count">2026년 남양주시 4대 분야 26개 대표 시책 예산액 총 5,231,497천원 편성 현황</p>
-          </div>
-          <div class="banner-stats">
-            <div>
-              <div class="banner-stat-val" id="banner-total-budget">52.31억원</div>
-              <div class="banner-stat-lbl">총 지원예산 (26개 사업)</div>
+    <div class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
+      
+      <!-- 뷰 1: Dashboard -->
+      <div id="view-dashboard" class="view-panel active space-y-8">
+        <div class="relative overflow-hidden rounded-3xl p-8 shadow-xl border border-white/40 bg-gradient-to-br from-nyjBlue/90 via-[#0052cc]/80 to-nyjSkyBlue/90">
+          <div class="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
+          <div class="absolute -bottom-20 -left-20 w-48 h-48 bg-nyjGreen/20 rounded-full blur-xl"></div>
+          <div class="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+            <div class="text-white space-y-3">
+              <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold border border-white/30 mb-2">VISION 2026</span>
+              <h3 class="text-2xl md:text-3xl font-extrabold leading-tight">더 좋은 기업 환경, <br class="hidden sm:block"/>더 강한 기업 경쟁력!</h3>
+              <p id="banner-total-count" class="text-blue-100 text-sm md:text-base opacity-90 max-w-md">2026년 남양주시 4대 분야 시책 예산액 현황</p>
             </div>
-            <div>
-              <div class="banner-stat-val" id="banner-city-budget">43.83억원</div>
-              <div class="banner-stat-lbl">시비·기금 재원 (시군부담)</div>
-            </div>
-            <div>
-              <div class="banner-stat-val" id="banner-prov-budget">8.35억원</div>
-              <div class="banner-stat-lbl">도비 매칭액 (경기도)</div>
+            
+            <div class="flex gap-4 md:gap-8 bg-black/10 backdrop-blur-md p-6 rounded-2xl border border-white/10 w-full lg:w-auto">
+              <div class="text-center lg:text-right">
+                <p class="text-blue-200 text-xs font-medium mb-1">총 지원예산</p>
+                <p id="banner-total-budget" class="text-white text-3xl font-black drop-shadow-md">0.00<span class="text-lg font-bold">억</span></p>
+              </div>
+              <div class="w-px bg-white/20"></div>
+              <div class="text-center lg:text-right">
+                <p class="text-blue-200 text-xs font-medium mb-1">시비·기금 재원</p>
+                <p id="banner-city-budget" class="text-white text-2xl font-bold mt-1">0.00<span class="text-sm">억</span></p>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="filter-card">
-          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-            <span style="font-weight:700; font-size:0.9rem; color:var(--primary);">🔍 4대 분야별 사업 검색:</span>
-            <input type="text" id="dashboardSearch" class="search-input" placeholder="사업명, 수행기관, 지원내용 검색..." oninput="filterDashboard()">
-            <select id="categoryFilter" class="search-select" onchange="filterDashboard()">
-              <option value="all">전체 분야 보기 (26개)</option>
-              <option value="기술지원">1. 기술지원 (6개)</option>
-              <option value="자금지원">2. 자금지원 (5개)</option>
-              <option value="판로개척">3. 판로개척 (9개)</option>
-              <option value="기업환경개선">4. 기업환경개선 (6개)</option>
+        <div class="glass-card rounded-2xl p-4 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-10">
+          <div class="flex items-center gap-3 w-full md:w-auto">
+            <div class="bg-blue-50 p-2 rounded-lg text-nyjBlue">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <input type="text" id="dashboardSearch" class="bg-transparent border-none outline-none text-sm w-full md:w-64 placeholder-gray-500 font-bold focus:ring-0" placeholder="사업명 또는 내용 검색..." oninput="filterDashboard()">
+          </div>
+          <div class="w-full md:w-auto flex gap-3 items-center">
+            <span id="searchResultCount" class="text-xs font-bold text-gray-500 whitespace-nowrap hidden md:block"></span>
+            <select id="categoryFilter" class="bg-white/50 border border-gray-200 text-sm rounded-xl px-4 py-2 font-bold text-gray-700 outline-none focus:border-nyjSkyBlue focus:ring-2 focus:ring-nyjSkyBlue/20 w-full md:w-auto transition-all" onchange="filterDashboard()">
+              <option value="all">전체 분야 보기</option>
+              <option value="기술지원">기술지원</option>
+              <option value="자금지원">자금지원</option>
+              <option value="판로개척">판로개척</option>
+              <option value="기업환경개선">기업환경개선</option>
             </select>
           </div>
-          <span id="searchResultCount" style="font-size:0.85rem; font-weight:600; color:var(--text-muted);">총 26개 사업 표시 중</span>
         </div>
 
-        <div id="searchableCardsGrid" class="cards-flow"></div>
+        <!-- Cards Grid -->
+        <div id="searchableCardsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
 
-        <div style="margin-top:10px;">
-          <h3 class="section-heading">📊 2026년 기업지원시책 분야별 예산 및 재원 배분 시각화</h3>
-          <div class="chart-grid">
-            <div class="chart-card">
-              <div class="chart-header">
-                <span style="color:var(--primary);">📌 4대 분야별 예산 비중 (도너츠 그래프)</span>
-                <span style="font-size:0.75rem; color:var(--text-muted);" id="chart-donut-desc">총 52.31억원 기준</span>
-              </div>
-              <div class="chart-container"><canvas id="categoryDonutChart"></canvas></div>
-            </div>
-            <div class="chart-card">
-              <div class="chart-header">
-                <span style="color:var(--primary);">📊 분야별 재원 분담 구성 (누적 막대 그래프)</span>
-                <span style="font-size:0.75rem; color:var(--text-muted);">단위: 백만원</span>
-              </div>
-              <div class="chart-container"><canvas id="categoryBarChart"></canvas></div>
-            </div>
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-nyjBlue/5 to-transparent rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-500"></div>
+            <h3 class="text-sm font-bold text-gray-700 mb-6 flex justify-between items-center">
+              <span>분야별 예산 비중</span>
+              <span id="chart-donut-desc" class="text-xs bg-gray-100 px-2 py-1 rounded-md text-gray-500 font-normal">총 0.00억</span>
+            </h3>
+            <div class="h-64 relative"><canvas id="categoryDonutChart"></canvas></div>
+          </div>
+          <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+             <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-nyjGreen/5 to-transparent rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-500"></div>
+            <h3 class="text-sm font-bold text-gray-700 mb-6 flex justify-between items-center">
+              <span>재원 분담 현황</span>
+              <span class="text-xs bg-gray-100 px-2 py-1 rounded-md text-gray-500 font-normal">단위: 백만원</span>
+            </h3>
+            <div class="h-64 relative"><canvas id="categoryBarChart"></canvas></div>
           </div>
         </div>
       </div>
-
-      <!-- 뷰 2: 개별 상세 화면 -->
-      <div id="view-project-detail" class="view-panel hidden">
-        <div class="filter-card">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <span style="font-weight:700; font-size:0.9rem; color:var(--primary);">사업 안내:</span>
-            <span id="detail-proj-desc">-</span>
+      
+      <!-- 뷰 2: 상세 화면 -->
+      <div id="view-project-detail" class="view-panel space-y-6">
+        <div class="glass-card rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-l-4 border-l-nyjSkyBlue">
+          <div>
+            <h3 class="text-sm font-bold text-nyjBlue mb-1">사업 개요</h3>
+            <p id="detail-proj-desc" class="text-gray-700 text-sm leading-relaxed"></p>
           </div>
-          <div><span class="box-badge badge-blue" id="detail-proj-agency">-</span></div>
+          <span id="detail-proj-agency" class="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl text-xs font-bold border border-blue-100 whitespace-nowrap"></span>
         </div>
 
-        <div class="finance-overview-grid" id="finance-board-container">
-          <div class="finance-item">
-            <div class="finance-label">총 사업비</div>
-            <div class="finance-val" id="fin-total">-</div>
-          </div>
-          <div class="finance-item">
-            <div class="finance-label">시비 (남양주시)</div>
-            <div class="finance-val" id="fin-city" style="color:var(--primary);">-</div>
-          </div>
-          <div class="finance-item">
-            <div class="finance-label">도비 (경기도)</div>
-            <div class="finance-val" id="fin-prov" style="color:var(--accent);">-</div>
-          </div>
-          <div class="finance-item">
-            <div class="finance-label">국비 (정부)</div>
-            <div class="finance-val" id="fin-nat" style="color:#d97706;">-</div>
-          </div>
-          <div class="finance-item">
-            <div class="finance-label">매칭 방식</div>
-            <div class="finance-val" id="fin-matching" style="font-size:0.88rem;">-</div>
-          </div>
-          <div class="finance-item">
-            <div class="finance-label">수행 기관</div>
-            <div class="finance-val" id="fin-exec" style="font-size:0.88rem;">-</div>
-          </div>
+        <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
+          <div class="glass-card p-4 rounded-2xl text-center"><div class="text-xs text-gray-500 font-bold mb-1">총 사업비</div><div id="fin-total" class="text-sm font-black text-gray-800"></div></div>
+          <div class="glass-card p-4 rounded-2xl text-center"><div class="text-xs text-gray-500 font-bold mb-1">시비</div><div id="fin-city" class="text-sm font-black text-nyjBlue"></div></div>
+          <div class="glass-card p-4 rounded-2xl text-center"><div class="text-xs text-gray-500 font-bold mb-1">도비</div><div id="fin-prov" class="text-sm font-black text-nyjGreen"></div></div>
+          <div class="glass-card p-4 rounded-2xl text-center"><div class="text-xs text-gray-500 font-bold mb-1">국비</div><div id="fin-nat" class="text-sm font-black text-nyjOrange"></div></div>
+          <div class="glass-card p-4 rounded-2xl text-center"><div class="text-xs text-gray-500 font-bold mb-1">매칭 방식</div><div id="fin-matching" class="text-xs font-bold text-gray-700 mt-1"></div></div>
+          <div class="glass-card p-4 rounded-2xl text-center"><div class="text-xs text-gray-500 font-bold mb-1">수행 기관</div><div id="fin-exec" class="text-xs font-bold text-gray-700 mt-1 line-clamp-2"></div></div>
         </div>
 
-        <div class="doc-viewer-card" style="margin-top:16px;">
-          <div class="tab-header">
-            <button class="tab-btn active" id="tab-btn-plan" onclick="switchDetailTab('plan')">📋 추진계획 및 세부내용</button>
-            <button class="tab-btn" id="tab-btn-history" onclick="switchDetailTab('history')">📜 신청방법 및 문의처 안내</button>
+        <div class="glass-card rounded-2xl overflow-hidden">
+          <div class="flex bg-white/50 border-b border-gray-200">
+            <button id="tab-btn-plan" class="flex-1 py-4 text-sm font-bold text-nyjBlue border-b-2 border-nyjBlue bg-white transition-colors" onclick="switchDetailTab('plan')">📋 세부내용</button>
+            <button id="tab-btn-history" class="flex-1 py-4 text-sm font-bold text-gray-500 border-b-2 border-transparent hover:bg-white/80 transition-colors" onclick="switchDetailTab('history')">📜 신청·문의처</button>
           </div>
-          <div class="tab-body" style="padding:20px;">
-            <div id="detail-tab-plan" class="cards-flow"></div>
+          <div class="p-6">
+            <div id="detail-tab-plan" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             <div id="detail-tab-history" class="hidden">
-              <div id="detail-history-custom"></div>
+              <div id="detail-history-custom" class="bg-gray-50 rounded-xl p-6 border border-gray-100"></div>
             </div>
           </div>
         </div>
 
-        <!-- 사업 관련 핵심 문서 관리 (GitHub 연동형) -->
-        <div class="doc-viewer-card" style="margin-top:20px;" id="doc-container-box">
-          <div class="tab-header" style="justify-content:space-between; align-items:center; padding:14px 20px;">
-            <span id="doc-card-title" style="font-weight:700; color:var(--primary); font-size:0.95rem;">📎 사업 관련 핵심 문서 다운로드 (공문 · 추진계획 · 추진현황)</span>
-            <span style="font-size:0.8rem; color:var(--text-muted);">엑셀(data.xlsx)에 파일명이 등록된 경우 GitHub 서버에서 바로 다운로드합니다.</span>
+        <div class="glass-card rounded-2xl overflow-hidden">
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 border-b border-blue-100 flex justify-between items-center">
+            <span class="font-bold text-nyjBlue text-sm">📎 핵심 문서 다운로드 (GitHub 연동)</span>
+            <span class="text-xs text-gray-500 font-medium hidden md:block">엑셀(data.xlsx)에 파일명이 등록된 경우 서버에서 바로 다운로드합니다.</span>
           </div>
-          <div class="tab-body" style="padding:20px;">
-            <div id="detail-attachments-container"></div>
-          </div>
+          <div class="p-6 space-y-4" id="detail-attachments-container"></div>
         </div>
       </div>
 
-      <!-- 뷰 2.5: 비밀번호 입력 화면 -->
-      <div id="view-password" class="view-panel hidden" style="display:flex; justify-content:center; align-items:center; padding:40px;">
-        <div class="doc-viewer-card" style="max-width: 450px; width: 100%; text-align:center; padding: 40px 30px;">
-          <div style="font-size:3rem; margin-bottom:15px;">🔒</div>
-          <h3 style="color:var(--primary); font-size:1.4rem; margin-bottom:10px;">관리자 권한 인증</h3>
-          <p style="color:#64748b; font-size:0.9rem; margin-bottom:24px; line-height:1.5;">기업애로사항 접수·관리 센터는 민감한 정보를 포함하고 있어 관리자 비밀번호 입력이 필요합니다.</p>
-          <input type="password" id="auth-password" class="search-input" placeholder="비밀번호를 입력하세요" style="width:100%; padding:12px; font-size:1rem; text-align:center; margin-bottom:16px;" onkeypress="if(event.key === 'Enter') verifyPassword();">
-          <button class="tab-btn active" style="width:100%; background:var(--primary); color:#fff; font-size:1rem; padding:12px; border-radius:8px; cursor:pointer;" onclick="verifyPassword()">접속하기</button>
+      <!-- 뷰 2.5: 비밀번호 화면 -->
+      <div id="view-password" class="view-panel h-full">
+        <div class="flex items-center justify-center h-full">
+          <div class="glass-card p-10 rounded-3xl max-w-sm w-full text-center shadow-2xl border-t-4 border-t-red-400">
+            <div class="text-5xl mb-6">🔒</div>
+            <h3 class="text-lg font-black text-gray-800 mb-2">관리자 권한 인증</h3>
+            <p class="text-xs text-gray-500 mb-8 leading-relaxed">기업애로사항 접수·관리 센터는 민감한 정보를 포함하고 있어 비밀번호 입력이 필요합니다.</p>
+            <input type="password" id="auth-password" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-center text-gray-800 font-bold focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 mb-4 transition-all" placeholder="비밀번호 입력" onkeypress="if(event.key === 'Enter') verifyPassword();">
+            <button class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl shadow-md transition-colors" onclick="verifyPassword()">접속하기</button>
+          </div>
         </div>
       </div>
 
       <!-- 뷰 3: 기업애로사항 관리 -->
-      <div id="view-grievance" class="view-panel hidden">
-        <div class="filter-card">
-          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-            <div>
-              <span style="font-weight:700; color:#ef4444;">💬 기업애로사항 현장 접수·관리 센터:</span>
-              <span style="font-size:0.85rem; margin-left:8px;">상태별·지역별 현황을 조회하고 엑셀 파일로 갱신할 수 있습니다.</span>
+      <div id="view-grievance" class="view-panel space-y-6">
+        <div class="glass-card rounded-2xl p-4 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-10">
+          <div class="flex items-center gap-3">
+             <span class="bg-red-50 text-red-600 p-2 rounded-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg></span>
+             <div>
+               <h3 class="text-sm font-bold text-red-600">현장 접수·관리 센터</h3>
+               <p class="text-xs text-gray-500 hidden md:block">엑셀 파일을 통해 상태별·지역별 현황을 갱신합니다.</p>
+             </div>
+          </div>
+          <div class="flex gap-2 w-full md:w-auto">
+            <input type="file" id="excelUpload" accept=".csv, .xlsx, .xls" class="hidden" onchange="handleExcelUpload(event)">
+            <button class="flex-1 md:flex-none bg-gray-800 hover:bg-gray-900 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm transition-colors" onclick="document.getElementById('excelUpload').click();">📁 엑셀 갱신</button>
+            <button class="flex-1 md:flex-none bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm transition-colors" onclick="clearGrievanceData();">🔄 서버 연동</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="glass-card p-6 rounded-2xl">
+            <h4 class="text-sm font-bold text-gray-700 mb-4 border-l-4 border-nyjBlue pl-2">상태별 요약</h4>
+            <div id="grievance-summary-content" class="grid grid-cols-3 gap-3"></div>
+          </div>
+          <div class="glass-card p-6 rounded-2xl">
+            <h4 class="text-sm font-bold text-gray-700 mb-4 border-l-4 border-nyjGreen pl-2">지역별 요약</h4>
+            <div id="region-summary-content" class="grid grid-cols-4 gap-3"></div>
+          </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl overflow-hidden">
+          <div class="flex justify-between items-center mb-4">
+            <h4 class="text-sm font-bold text-gray-700">접수 목록</h4>
+            <div class="flex items-center gap-3">
+              <select id="regionFilter" class="bg-white/80 border border-gray-200 text-xs font-bold rounded-lg px-3 py-1.5 outline-none focus:border-red-400" onchange="filterGrievanceTable()"></select>
+              <span id="grievance-count" class="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-lg"></span>
             </div>
           </div>
-          <div style="display:flex; gap:8px;">
-            <input type="file" id="excelUpload" accept=".csv, .xlsx, .xls" style="display: none;" onchange="handleExcelUpload(event)">
-            <button class="tab-btn active" style="background:var(--primary); color:#fff; border-radius:6px; padding:6px 14px; cursor:pointer;" onclick="document.getElementById('excelUpload').click();">📁 엑셀 업로드 갱신</button>
-            <button class="tab-btn" style="background:#fee2e2; color:#dc2626; border-radius:6px; padding:6px 14px; cursor:pointer;" onclick="clearGrievanceData();">🗑️ 서버 데이터 새로고침</button>
-          </div>
-        </div>
-
-        <div class="doc-viewer-card" style="padding:20px; margin-top:16px;">
-          <h4 style="color:var(--primary); margin-bottom:12px; font-size:0.95rem;">📊 상태별 요약 통계 (대기, 진행 중, 검토, 장기검토, 불가, 완료)</h4>
-          <div id="grievance-summary-content" class="stat-grid"></div>
-        </div>
-
-        <div class="doc-viewer-card" style="padding:20px; margin-top:16px;">
-          <h4 style="color:var(--primary); margin-bottom:12px; font-size:0.95rem;">📍 지역별 요약 통계 (화도, 진접, 오남, 진건 등)</h4>
-          <div id="region-summary-content" class="stat-grid"></div>
-        </div>
-
-        <div class="doc-viewer-card" style="padding:20px; margin-top:16px;">
-          <div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <h4 style="color:var(--primary);">📋 애로사항 접수 현황 목록</h4>
-            <div style="display:flex; align-items:center; gap:10px;">
-              <select id="regionFilter" class="search-select" onchange="filterGrievanceTable()">
-                <option value="all">전체 지역 보기</option>
-              </select>
-              <span id="grievance-count" style="font-size:0.85rem; color:#64748b; font-weight:600;">총 접수: 0건</span>
-            </div>
-          </div>
-          <div style="overflow-x:auto;">
-            <table class="custom-table">
+          <div class="overflow-x-auto rounded-xl border border-gray-100">
+            <table class="w-full text-left border-collapse text-xs">
               <thead>
-                <tr>
-                  <th style="width:60px; text-align:center;">번호</th>
-                  <th>기업명</th>
-                  <th>기업애로위치</th>
-                  <th>지역</th>
-                  <th>분야</th>
-                  <th>기업애로 내용</th>
-                  <th>상담 및 건의 내용</th>
-                  <th>처리내용</th>
-                  <th style="width:90px; text-align:center;">상태</th>
+                <tr class="bg-gray-50/80 text-gray-600 border-b border-gray-200">
+                  <th class="p-3 font-bold text-center">No.</th>
+                  <th class="p-3 font-bold">기업명</th>
+                  <th class="p-3 font-bold">위치</th>
+                  <th class="p-3 font-bold">지역</th>
+                  <th class="p-3 font-bold">분야</th>
+                  <th class="p-3 font-bold min-w-[150px]">애로 내용</th>
+                  <th class="p-3 font-bold min-w-[150px]">처리/건의 내용</th>
+                  <th class="p-3 font-bold text-center">상태</th>
                 </tr>
               </thead>
-              <tbody id="grievance-tbody"></tbody>
+              <tbody id="grievance-tbody" class="divide-y divide-gray-100"></tbody>
             </table>
           </div>
         </div>
       </div>
-
-      <!-- 뷰 4: 업무매뉴얼 -->
-      <div id="view-manual" class="view-panel hidden">
-        <div class="filter-card">
-          <span style="font-weight:700; color:var(--primary);">📖 행정시스템 업무매뉴얼 가이드</span>
-          <span class="box-badge badge-blue">지방재정·보조금 매뉴얼</span>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px;">
-          <div class="content-box" style="text-align:center; padding:30px; cursor:pointer;" onclick="showManual('ehojo')">
-            <h3 style="color:var(--primary); font-size:1.8rem; margin-bottom:8px;">e호조</h3>
-            <p style="font-size:0.88rem; color:#475569;">지방재정시스템 회계지출·원인행위·예산집행 프로세스</p>
-          </div>
-          <div class="content-box" style="text-align:center; padding:30px; cursor:pointer;" onclick="showManual('botem')">
-            <h3 style="color:var(--accent); font-size:1.8rem; margin-bottom:8px;">보탬e</h3>
-            <p style="font-size:0.88rem; color:#475569;">지방보조금관리시스템 사업공고·교부결정·정산검사 프로세스</p>
-          </div>
-        </div>
-        <div id="manual-detail-box" class="doc-viewer-card hidden" style="margin-top:16px; padding:20px;">
-          <h4 id="manual-detail-title" style="margin-bottom:10px; color:var(--primary);"></h4>
-          <p id="manual-detail-desc" style="font-size:0.88rem; color:#334155; line-height:1.7;"></p>
-        </div>
-      </div>
-
+      
     </div>
   </main>
+
 </body>
 </html>
