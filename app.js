@@ -12,8 +12,6 @@ const catMap = {
 let donutChartInst = null;
 let barChartInst = null;
 
-// 보안 접근 플래그
-let isGrievanceUnlocked = false;
 // 'sos8220'의 SHA-256 해시값 
 const TARGET_HASH = "43ca49cf349f794f591fdc429a0801a628dfc7bbf4f5cbcc03c09578136f33d1"; 
 
@@ -223,33 +221,29 @@ async function hashPassword(message) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// 비밀번호 검증
+// 전체 대시보드 비밀번호 검증
 async function verifyPassword() {
   const inputEl = document.getElementById("auth-password");
   const inputHash = await hashPassword(inputEl.value);
   
   if (inputHash === TARGET_HASH) {
-    isGrievanceUnlocked = true;
-    inputEl.value = ""; 
+    // 앱 전체 잠금 해제
+    document.getElementById('login-screen').classList.add('hidden');
     
-    const badge = document.getElementById("grievance-badge");
-    if(badge) {
-        badge.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg> 열람가능`;
-        badge.className = "text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full border border-green-300 shadow-sm font-bold flex items-center gap-1.5";
-    }
-    document.getElementById("nav-grievance").querySelector('svg').classList.replace('text-red-500', 'text-green-600');
+    const appContainer = document.getElementById('app-container');
+    appContainer.classList.remove('hidden');
+    appContainer.classList.add('flex');
     
-    switchView('grievance'); 
+    // 데이터 로딩 시작
+    fetchExcelData();
   } else {
-    alert("비밀번호가 일치하지 않습니다.");
+    alert("인증번호가 일치하지 않습니다.");
     inputEl.value = "";
     inputEl.focus();
   }
 }
 
 function switchView(viewId) {
-  if (viewId === 'grievance' && !isGrievanceUnlocked) viewId = 'password';
-
   document.querySelectorAll('.view-panel').forEach(el => {
       el.classList.add('hidden');
       el.classList.remove('active');
@@ -270,7 +264,6 @@ function switchView(viewId) {
 
   const meta = {
     'dashboard': { title: '2026 기업 지원시책 대시보드', desc: '기술지원·자금지원·판로개척·기업환경개선 종합 현황 분석' },
-    'password':  { title: '관리자 권한 인증', desc: '민감한 정보를 보호하기 위한 보안 페이지입니다.' },
     'grievance': { title: '기업애로사항 접수·관리', desc: '관내 기업체 현장 애로사항 목록 및 통계를 조회합니다.' },
     'project-detail': { title: '사업 상세정보', desc: '해당 시책의 세부 추진계획 및 관련 문서를 관리합니다.' }
   };
@@ -628,5 +621,4 @@ function initCharts() {
       });
   }
 }
-
-window.addEventListener('DOMContentLoaded', fetchExcelData);
+// 앱 초기화 로직 제거됨. 인증 완료 후 fetchExcelData()가 호출됩니다.
