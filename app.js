@@ -166,16 +166,17 @@ function updateDashboardStats() {
 }
 
 function renderSidebarMenu() {
-  const makeNavItem = (p) => `
-    <div class="nav-item-hover px-3 py-2 rounded-lg flex justify-between items-center cursor-pointer transition-all border-l-2 border-transparent hover:border-gray-300" id="nav-${p.id}" onclick="openProjectDetail('${p.id}')">
-      <span class="text-xs text-gray-600 font-medium truncate pr-2 w-full" title="${p.title}">· ${p.shortTitle}</span>
+  const makeNavItem = (p, badgeClass) => `
+    <div class="nav-item-hover px-2 py-2 rounded-lg flex justify-between items-center cursor-pointer transition-all border-l-2 border-transparent hover:border-gray-400 gap-2" id="nav-${p.id}" onclick="openProjectDetail('${p.id}')">
+      <span class="text-xs text-gray-800 font-bold truncate flex-1" title="${p.title}">· ${p.shortTitle}</span>
+      <span class="text-[0.65rem] font-bold px-1.5 py-0.5 rounded-md whitespace-nowrap shadow-sm ${badgeClass}">${p.badge}</span>
     </div>
   `;
 
-  document.getElementById('dynamic-nav-cat1').innerHTML = PROJECTS_DATA.filter(p => p.catId === 1).map(p => makeNavItem(p)).join('');
-  document.getElementById('dynamic-nav-cat2').innerHTML = PROJECTS_DATA.filter(p => p.catId === 2).map(p => makeNavItem(p)).join('');
-  document.getElementById('dynamic-nav-cat3').innerHTML = PROJECTS_DATA.filter(p => p.catId === 3).map(p => makeNavItem(p)).join('');
-  document.getElementById('dynamic-nav-cat4').innerHTML = PROJECTS_DATA.filter(p => p.catId === 4).map(p => makeNavItem(p)).join('');
+  document.getElementById('dynamic-nav-cat1').innerHTML = PROJECTS_DATA.filter(p => p.catId === 1).map(p => makeNavItem(p, 'bg-blue-100 text-blue-700')).join('');
+  document.getElementById('dynamic-nav-cat2').innerHTML = PROJECTS_DATA.filter(p => p.catId === 2).map(p => makeNavItem(p, 'bg-purple-100 text-purple-700')).join('');
+  document.getElementById('dynamic-nav-cat3').innerHTML = PROJECTS_DATA.filter(p => p.catId === 3).map(p => makeNavItem(p, 'bg-green-100 text-green-700')).join('');
+  document.getElementById('dynamic-nav-cat4').innerHTML = PROJECTS_DATA.filter(p => p.catId === 4).map(p => makeNavItem(p, 'bg-orange-100 text-orange-700')).join('');
 }
 
 function renderDashboardCards() {
@@ -188,14 +189,14 @@ function renderDashboardCards() {
       <div class="glass-card rounded-2xl p-6 flex flex-col justify-between group border-t-4 ${borderColor} searchable-card" data-category="${p.catName}">
         <div>
           <div class="flex justify-between items-start mb-4 gap-2">
-            <h3 class="text-base md:text-lg font-bold text-gray-800 leading-tight group-hover:text-nyjBlue transition-colors">${p.title}</h3>
+            <h3 class="text-base md:text-lg font-bold text-gray-900 leading-tight group-hover:text-nyjBlue transition-colors">${p.title}</h3>
             <span class="text-xs font-bold px-2 py-1 rounded-md ${badgeBg} whitespace-nowrap shadow-sm">${p.badge}</span>
           </div>
-          <p class="text-sm text-gray-600 mb-6 leading-relaxed line-clamp-3">${p.desc}</p>
+          <p class="text-sm text-gray-800 font-medium mb-6 leading-relaxed line-clamp-3">${p.desc}</p>
         </div>
         <div>
-          <div class="text-xs text-gray-500 mb-4 bg-white/50 p-2 rounded-lg border border-white">
-            <span class="font-bold text-gray-700">수행:</span> ${p.finance.agency}
+          <div class="text-xs text-gray-700 font-medium mb-4 bg-white/70 p-2 rounded-lg border border-white">
+            <span class="font-bold text-gray-900">수행:</span> ${p.finance.agency}
           </div>
           <button class="w-full py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-nyjBlue font-bold rounded-xl text-sm transition-all border border-blue-100 shadow-sm" onclick="openProjectDetail('${p.id}')">
             상세내용 및 문서 관리 &rarr;
@@ -250,7 +251,7 @@ function switchView(viewId) {
   document.querySelectorAll('.nav-item-active').forEach(el => {
       if(el.id === 'nav-dashboard') {
           el.classList.remove('nav-item-active');
-          el.classList.add('text-gray-600');
+          el.classList.add('text-gray-800');
       }
   });
 
@@ -275,7 +276,7 @@ function switchView(viewId) {
   if (viewId === 'dashboard') {
     const dNav = document.getElementById('nav-dashboard');
     dNav.classList.add('nav-item-active');
-    dNav.classList.remove('text-gray-600');
+    dNav.classList.remove('text-gray-800');
   }
 }
 
@@ -292,28 +293,28 @@ function openProjectDetail(bizId) {
 
   const fmt = v => v === 0 ? '-' : v.toLocaleString() + '천원';
   document.getElementById('fin-total').innerText = fmt(proj.finance.total);
-  document.getElementById('fin-city').innerHTML = proj.finance.fund > 0 ? `${fmt(proj.finance.city)} <br><span class="text-[0.65rem] text-orange-600">(기금: ${fmt(proj.finance.fund)})</span>` : fmt(proj.finance.city);
+  document.getElementById('fin-city').innerHTML = proj.finance.fund > 0 ? `${fmt(proj.finance.city)} <br><span class="text-[0.65rem] text-orange-600 font-bold">(기금: ${fmt(proj.finance.fund)})</span>` : fmt(proj.finance.city);
   document.getElementById('fin-prov').innerText = fmt(proj.finance.prov);
   document.getElementById('fin-nat').innerText = fmt(proj.finance.nat);
   document.getElementById('fin-matching').innerText = proj.finance.matching;
   document.getElementById('fin-exec').innerText = proj.finance.agency;
 
   document.getElementById('detail-tab-plan').innerHTML = proj.plans.map(pl => `
-    <div class="bg-white/60 p-5 rounded-2xl border border-white shadow-sm">
+    <div class="bg-white/90 p-5 rounded-2xl border border-gray-200 shadow-sm">
       <div class="flex justify-between items-start mb-3 gap-2">
         <span class="font-bold text-nyjBlue text-sm">${pl.title}</span>
         <span class="text-[0.65rem] font-bold bg-green-100 text-green-700 px-2 py-1 rounded-md whitespace-nowrap">${pl.budget}</span>
       </div>
-      <div class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">${pl.desc}</div>
+      <div class="text-xs text-gray-800 font-medium leading-relaxed whitespace-pre-wrap">${pl.desc}</div>
     </div>
   `).join('');
 
   document.getElementById('detail-history-custom').innerHTML = `
     <h4 class="text-sm font-bold text-nyjBlue mb-3 border-l-4 border-nyjSkyBlue pl-2">신청방법 및 문의처 세부안내</h4>
-    <div class="space-y-2 text-xs text-gray-600">
-        <p><b class="text-gray-700">지원 대상:</b> ${proj.target}</p>
-        <p><b class="text-gray-700">신청 방법:</b> ${proj.applyInfo}</p>
-        <p><b class="text-gray-700">문의 부서:</b> ${proj.contact}</p>
+    <div class="space-y-2 text-xs text-gray-800 font-medium">
+        <p><b class="text-gray-900">지원 대상:</b> ${proj.target}</p>
+        <p><b class="text-gray-900">신청 방법:</b> ${proj.applyInfo}</p>
+        <p><b class="text-gray-900">문의 부서:</b> ${proj.contact}</p>
     </div>
   `;
 
@@ -329,12 +330,12 @@ function switchDetailTab(type) {
   
   if(isPlan) {
       btnPlan.className = "flex-1 py-4 text-sm font-bold text-nyjBlue border-b-2 border-nyjBlue bg-white transition-colors";
-      btnHist.className = "flex-1 py-4 text-sm font-bold text-gray-500 border-b-2 border-transparent hover:bg-white/80 transition-colors";
+      btnHist.className = "flex-1 py-4 text-sm font-bold text-gray-600 border-b-2 border-transparent hover:bg-gray-50 transition-colors";
       document.getElementById('detail-tab-plan').classList.remove('hidden');
       document.getElementById('detail-tab-history').classList.add('hidden');
   } else {
       btnHist.className = "flex-1 py-4 text-sm font-bold text-nyjBlue border-b-2 border-nyjBlue bg-white transition-colors";
-      btnPlan.className = "flex-1 py-4 text-sm font-bold text-gray-500 border-b-2 border-transparent hover:bg-white/80 transition-colors";
+      btnPlan.className = "flex-1 py-4 text-sm font-bold text-gray-600 border-b-2 border-transparent hover:bg-gray-50 transition-colors";
       document.getElementById('detail-tab-history').classList.remove('hidden');
       document.getElementById('detail-tab-plan').classList.add('hidden');
   }
@@ -353,19 +354,19 @@ function renderAttachmentRows(proj) {
     const safeFilename = encodeURIComponent(filename);
 
     return `
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-white/40 rounded-xl border border-white gap-4">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-white/70 rounded-xl border border-gray-100 shadow-sm gap-4">
         <div>
           <div class="flex items-center gap-2 mb-1">
             <span class="text-[0.7rem] font-bold border px-2 py-0.5 rounded-md ${cat.badge}">${cat.name}</span>
-            <span class="text-sm font-bold text-gray-800">문서 연동</span>
+            <span class="text-sm font-bold text-gray-900">문서 연동</span>
           </div>
-          <div class="text-xs">
+          <div class="text-xs font-medium text-gray-800">
             ${isRegistered 
-              ? `<span class="text-green-600 font-bold mr-1">✓ 등록됨:</span> <span class="text-gray-600">${filename}</span>` 
-              : `<span class="text-gray-400 italic">미등록 상태 (data.xlsx에 파일명 입력 필요)</span>`}
+              ? `<span class="text-green-700 font-bold mr-1">✓ 등록됨:</span> ${filename}` 
+              : `<span class="text-gray-500 italic">미등록 상태 (data.xlsx에 파일명 입력 필요)</span>`}
           </div>
         </div>
-        <button class="w-full md:w-auto px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1 ${isRegistered ? 'bg-nyjBlue text-white hover:bg-blue-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}" ${isRegistered ? `onclick="window.open('./${safeFilename}', '_blank')"` : 'disabled'}>
+        <button class="w-full md:w-auto px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1 ${isRegistered ? 'bg-nyjBlue text-white hover:bg-blue-800' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}" ${isRegistered ? `onclick="window.open('./${safeFilename}', '_blank')"` : 'disabled'}>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
           다운로드
         </button>
@@ -401,7 +402,7 @@ function renderGrievanceTables(dataList) {
   tbody.innerHTML = '';
 
   if (!dataList || dataList.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" class="text-center p-8 text-gray-400 font-bold">데이터가 없습니다.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center p-8 text-gray-500 font-bold">데이터가 없습니다.</td></tr>`;
     return;
   }
 
@@ -416,15 +417,15 @@ function renderGrievanceTables(dataList) {
   });
 
   regionBox.innerHTML = Object.entries(regionCounts).map(([reg, count]) => `
-    <div class="bg-white/50 border border-white p-3 rounded-xl text-center shadow-sm">
-      <div class="text-[0.7rem] font-bold text-gray-500 mb-1">${reg}</div>
+    <div class="bg-white/80 border border-gray-100 p-3 rounded-xl text-center shadow-sm">
+      <div class="text-[0.7rem] font-bold text-gray-700 mb-1">${reg}</div>
       <div class="text-lg font-black text-nyjGreen">${count}건</div>
     </div>
   `).join('');
 
   summaryBox.innerHTML = Object.entries(statusCounts).map(([status, count]) => `
-    <div class="bg-white/50 border border-white p-3 rounded-xl text-center shadow-sm">
-      <div class="text-[0.7rem] font-bold text-gray-500 mb-1">${status}</div>
+    <div class="bg-white/80 border border-gray-100 p-3 rounded-xl text-center shadow-sm">
+      <div class="text-[0.7rem] font-bold text-gray-700 mb-1">${status}</div>
       <div class="text-lg font-black text-nyjBlue">${count}건</div>
     </div>
   `).join('');
@@ -432,20 +433,20 @@ function renderGrievanceTables(dataList) {
   let filteredData = dataList.filter(item => selectedRegion === 'all' || item.region === selectedRegion);
 
   filteredData.forEach((item, idx) => {
-    let badgeStyle = 'bg-yellow-100 text-yellow-700 border-yellow-200';
-    if (item.rawStatus.includes('진행 중')) badgeStyle = 'bg-green-100 text-green-700 border-green-200';
-    else if (item.rawStatus.includes('불가')) badgeStyle = 'bg-red-100 text-red-700 border-red-200';
-    else if (item.rawStatus.includes('완료')) badgeStyle = 'bg-blue-100 text-blue-700 border-blue-200';
+    let badgeStyle = 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    if (item.rawStatus.includes('진행 중')) badgeStyle = 'bg-green-100 text-green-800 border-green-200';
+    else if (item.rawStatus.includes('불가')) badgeStyle = 'bg-red-100 text-red-800 border-red-200';
+    else if (item.rawStatus.includes('완료')) badgeStyle = 'bg-blue-100 text-blue-800 border-blue-200';
 
     tbody.innerHTML += `
-      <tr class="hover:bg-gray-50/50 transition-colors">
-        <td class="p-3 text-center font-bold text-gray-400">${idx + 1}</td>
-        <td class="p-3 font-bold text-gray-800">${item.corpName}</td>
-        <td class="p-3 text-gray-600">${item.location}</td>
-        <td class="p-3"><span class="text-[0.65rem] px-2 py-1 bg-gray-100 rounded-md font-bold text-gray-600 whitespace-nowrap">${item.region}</span></td>
-        <td class="p-3 text-gray-600 whitespace-nowrap">${item.field}</td>
-        <td class="p-3 text-gray-600 leading-relaxed">${item.grievanceContent}</td>
-        <td class="p-3 text-gray-600 leading-relaxed border-l border-gray-100"><span class="block mb-1 font-bold text-nyjSkyBlue">상담:</span>${item.consultContent}<br><span class="block mt-2 font-bold text-nyjBlue">처리:</span>${item.processContent}</td>
+      <tr class="hover:bg-gray-100/70 transition-colors">
+        <td class="p-3 text-center font-bold text-gray-600">${idx + 1}</td>
+        <td class="p-3 font-bold text-gray-900">${item.corpName}</td>
+        <td class="p-3 font-medium text-gray-800">${item.location}</td>
+        <td class="p-3"><span class="text-[0.65rem] px-2 py-1 bg-gray-200 rounded-md font-bold text-gray-800 whitespace-nowrap">${item.region}</span></td>
+        <td class="p-3 font-medium text-gray-800 whitespace-nowrap">${item.field}</td>
+        <td class="p-3 font-medium text-gray-800 leading-relaxed">${item.grievanceContent}</td>
+        <td class="p-3 font-medium text-gray-800 leading-relaxed border-l border-gray-200"><span class="block mb-1 font-bold text-nyjSkyBlue">상담:</span>${item.consultContent}<br><span class="block mt-2 font-bold text-nyjBlue">처리:</span>${item.processContent}</td>
         <td class="p-3 text-center"><span class="text-[0.7rem] font-bold px-2 py-1 rounded-md border whitespace-nowrap ${badgeStyle}">${item.rawStatus}</span></td>
       </tr>
     `;
@@ -511,7 +512,7 @@ function initCharts() {
   document.getElementById('chart-donut-desc').innerText = `총 ${(totalOverall / 100000).toFixed(2)}억원`;
 
   Chart.defaults.font.family = "'Pretendard', sans-serif";
-  Chart.defaults.color = "#64748b";
+  Chart.defaults.color = "#475569"; // 진한 텍스트로 변경
 
   const donutCtx = document.getElementById('categoryDonutChart').getContext('2d');
   donutChartInst = new Chart(donutCtx, {
@@ -532,10 +533,10 @@ function initCharts() {
       plugins: {
         legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15, font: { size: 11, weight: 'bold' } } },
         tooltip: {
-          backgroundColor: 'rgba(255,255,255,0.9)',
-          titleColor: '#1e293b',
-          bodyColor: '#1e293b',
-          borderColor: '#e2e8f0',
+          backgroundColor: 'rgba(255,255,255,0.95)',
+          titleColor: '#0f172a',
+          bodyColor: '#0f172a',
+          borderColor: '#cbd5e1',
           borderWidth: 1,
           padding: 12,
           callbacks: {
@@ -567,7 +568,7 @@ function initCharts() {
       maintainAspectRatio: false,
       scales: {
         x: { stacked: true, grid: { display: false } },
-        y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v + '억' } }
+        y: { stacked: true, grid: { color: 'rgba(0,0,0,0.1)' }, ticks: { callback: v => v + '억' } }
       },
       plugins: {
         legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11, weight: 'bold' } } }
