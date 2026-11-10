@@ -31,7 +31,6 @@ window.addEventListener('resize', () => {
   if (window.innerWidth > 768) {
     document.getElementById('sidebar').classList.remove('-translate-x-full');
     document.getElementById('overlay').classList.add('hidden');
-    // Ensure sidebar is visible on resize to desktop if it wasn't toggled off explicitly
   }
 });
 
@@ -135,7 +134,7 @@ function animateNumber(elementId, targetVal, isBillion) {
             current = targetVal;
         }
         if(isBillion) {
-            el.innerHTML = current.toFixed(2) + '<span class="text-xl font-extrabold ml-1">억</span>';
+            el.innerHTML = current.toFixed(2) + '<span class="text-lg md:text-xl font-extrabold ml-1">억</span>';
         } else {
             el.innerHTML = current.toFixed(2);
         }
@@ -169,9 +168,9 @@ function updateDashboardStats() {
 
 function renderSidebarMenu() {
   const makeNavItem = (p, badgeClass) => `
-    <div class="nav-item-hover px-3 py-3 rounded-xl flex justify-between items-center cursor-pointer transition-all border-l-4 border-transparent hover:border-gray-400 gap-3 bg-white/40 mb-2 shadow-sm" id="nav-${p.id}" onclick="openProjectDetail('${p.id}')">
-      <span class="text-sm text-gray-900 font-extrabold truncate flex-1" title="${p.title}">· ${p.shortTitle}</span>
-      <span class="text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap shadow-sm ${badgeClass}">${p.badge}</span>
+    <div class="nav-item-hover px-2 md:px-3 py-2.5 md:py-3 rounded-xl flex justify-between items-center cursor-pointer transition-all border-l-4 border-transparent hover:border-gray-400 gap-2 md:gap-3 bg-white/40 mb-1.5 md:mb-2 shadow-sm" id="nav-${p.id}" onclick="openProjectDetail('${p.id}')">
+      <span class="text-xs md:text-sm text-gray-900 font-extrabold truncate flex-1" title="${p.title}">· ${p.shortTitle}</span>
+      <span class="text-[0.65rem] md:text-xs font-bold px-1.5 py-0.5 md:px-2 md:py-1 rounded-lg whitespace-nowrap shadow-sm ${badgeClass}">${p.badge}</span>
     </div>
   `;
 
@@ -190,19 +189,19 @@ function renderDashboardCards() {
     let badgeBg = p.catId === 2 ? 'bg-purple-100 text-purple-800 border border-purple-200' : p.catId === 3 ? 'bg-green-100 text-green-800 border border-green-200' : p.catId === 4 ? 'bg-orange-100 text-orange-800 border border-orange-200' : 'bg-blue-100 text-blue-800 border border-blue-200';
 
     return `
-      <div class="glass-card rounded-3xl p-7 flex flex-col justify-between group border-t-8 ${borderColor} searchable-card shadow-md hover:shadow-xl" data-category="${p.catName}">
+      <div class="glass-card rounded-2xl md:rounded-3xl p-5 md:p-7 flex flex-col justify-between group border-t-[6px] md:border-t-8 ${borderColor} searchable-card shadow-md hover:shadow-xl" data-category="${p.catName}">
         <div>
-          <div class="flex justify-between items-start mb-5 gap-3">
-            <h3 class="text-lg md:text-xl font-extrabold text-gray-900 leading-tight group-hover:text-nyjBlue transition-colors">${p.title}</h3>
-            <span class="text-sm font-bold px-3 py-1.5 rounded-lg ${badgeBg} whitespace-nowrap shadow-sm">${p.badge}</span>
+          <div class="flex justify-between items-start mb-4 md:mb-5 gap-3">
+            <h3 class="text-base md:text-xl font-extrabold text-gray-900 leading-tight group-hover:text-nyjBlue transition-colors">${p.title}</h3>
+            <span class="text-xs md:text-sm font-bold px-2 py-1 md:px-3 md:py-1.5 rounded-lg ${badgeBg} whitespace-nowrap shadow-sm">${p.badge}</span>
           </div>
-          <p class="text-base text-gray-800 font-bold mb-8 leading-relaxed line-clamp-3">${p.desc}</p>
+          <p class="text-sm md:text-base text-gray-800 font-bold mb-6 md:mb-8 leading-relaxed line-clamp-3">${p.desc}</p>
         </div>
         <div>
-          <div class="text-sm text-gray-800 font-bold mb-5 bg-white/80 p-3 rounded-xl border border-gray-200 shadow-sm">
+          <div class="text-xs md:text-sm text-gray-800 font-bold mb-4 md:mb-5 bg-white/80 p-2 md:p-3 rounded-xl border border-gray-200 shadow-sm">
             <span class="font-extrabold text-gray-900">수행기관:</span> ${p.finance.agency}
           </div>
-          <button class="w-full py-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-nyjBlue font-extrabold rounded-2xl text-base transition-all border border-blue-200 shadow-md focus:ring-4 focus:ring-blue-100" onclick="openProjectDetail('${p.id}')">
+          <button class="w-full py-2.5 md:py-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-nyjBlue font-extrabold rounded-xl md:rounded-2xl text-sm md:text-base transition-all border border-blue-200 shadow-md focus:ring-4 focus:ring-blue-100" onclick="openProjectDetail('${p.id}')">
             상세내용 및 문서 관리 &rarr;
           </button>
         </div>
@@ -210,7 +209,7 @@ function renderDashboardCards() {
     `;
   }).join('');
   const cnt = document.getElementById('searchResultCount');
-  if(cnt) cnt.innerText = `총 ${PROJECTS_DATA.length}개 사업`;
+  if(cnt) cnt.innerText = `총 ${PROJECTS_DATA.length}개 사업 검색됨`;
 }
 
 // SHA-256 해시 함수
@@ -300,7 +299,7 @@ function openProjectDetail(bizId) {
   setTxt('fin-total', fmt(proj.finance.total));
   
   const finCity = document.getElementById('fin-city');
-  if(finCity) finCity.innerHTML = proj.finance.fund > 0 ? `${fmt(proj.finance.city)} <br><span class="text-sm text-orange-600 font-extrabold mt-1 inline-block">(기금: ${fmt(proj.finance.fund)})</span>` : fmt(proj.finance.city);
+  if(finCity) finCity.innerHTML = proj.finance.fund > 0 ? `${fmt(proj.finance.city)} <br><span class="text-xs md:text-sm text-orange-600 font-extrabold mt-1 inline-block">(기금: ${fmt(proj.finance.fund)})</span>` : fmt(proj.finance.city);
   
   setTxt('fin-prov', fmt(proj.finance.prov));
   setTxt('fin-nat', fmt(proj.finance.nat));
@@ -310,12 +309,12 @@ function openProjectDetail(bizId) {
   const planEl = document.getElementById('detail-tab-plan');
   if(planEl) {
       planEl.innerHTML = proj.plans.map(pl => `
-        <div class="bg-white p-6 rounded-3xl border border-gray-200 shadow-md">
-          <div class="flex justify-between items-start mb-4 gap-3">
-            <span class="font-extrabold text-nyjBlue text-base">${pl.title}</span>
-            <span class="text-sm font-bold bg-green-100 text-green-800 border border-green-200 px-3 py-1.5 rounded-lg whitespace-nowrap">${pl.budget}</span>
+        <div class="bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl border border-gray-200 shadow-md">
+          <div class="flex justify-between items-start mb-3 md:mb-4 gap-3">
+            <span class="font-extrabold text-nyjBlue text-sm md:text-base">${pl.title}</span>
+            <span class="text-xs md:text-sm font-bold bg-green-100 text-green-800 border border-green-200 px-2.5 py-1 md:px-3 md:py-1.5 rounded-lg whitespace-nowrap">${pl.budget}</span>
           </div>
-          <div class="text-sm md:text-base text-gray-800 font-bold leading-relaxed whitespace-pre-wrap">${pl.desc}</div>
+          <div class="text-xs md:text-base text-gray-800 font-bold leading-relaxed whitespace-pre-wrap">${pl.desc}</div>
         </div>
       `).join('');
   }
@@ -323,8 +322,8 @@ function openProjectDetail(bizId) {
   const histEl = document.getElementById('detail-history-custom');
   if(histEl) {
       histEl.innerHTML = `
-        <h4 class="text-base font-extrabold text-nyjBlue mb-4 border-l-[5px] border-nyjSkyBlue pl-3">신청방법 및 문의처 세부안내</h4>
-        <div class="space-y-3 text-base text-gray-800 font-bold bg-gray-50 p-5 rounded-2xl border border-gray-100">
+        <h4 class="text-sm md:text-base font-extrabold text-nyjBlue mb-3 md:mb-4 border-l-[4px] md:border-l-[5px] border-nyjSkyBlue pl-2 md:pl-3">신청방법 및 문의처 세부안내</h4>
+        <div class="space-y-2 md:space-y-3 text-sm md:text-base text-gray-800 font-bold bg-gray-50 p-4 md:p-5 rounded-xl md:rounded-2xl border border-gray-100">
             <p><b class="text-gray-900">지원 대상:</b> ${proj.target}</p>
             <p><b class="text-gray-900">신청 방법:</b> ${proj.applyInfo}</p>
             <p><b class="text-gray-900">문의 부서:</b> ${proj.contact}</p>
@@ -345,13 +344,13 @@ function switchDetailTab(type) {
   if(!btnPlan || !btnHist) return;
 
   if(isPlan) {
-      btnPlan.className = "flex-1 py-5 text-base md:text-lg font-extrabold text-nyjBlue border-b-4 border-nyjBlue bg-white transition-colors";
-      btnHist.className = "flex-1 py-5 text-base md:text-lg font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-gray-50 transition-colors";
+      btnPlan.className = "flex-1 py-4 md:py-5 text-sm md:text-lg font-extrabold text-nyjBlue border-b-4 border-nyjBlue bg-white transition-colors";
+      btnHist.className = "flex-1 py-4 md:py-5 text-sm md:text-lg font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-gray-50 transition-colors";
       document.getElementById('detail-tab-plan').classList.remove('hidden');
       document.getElementById('detail-tab-history').classList.add('hidden');
   } else {
-      btnHist.className = "flex-1 py-5 text-base md:text-lg font-extrabold text-nyjBlue border-b-4 border-nyjBlue bg-white transition-colors";
-      btnPlan.className = "flex-1 py-5 text-base md:text-lg font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-gray-50 transition-colors";
+      btnHist.className = "flex-1 py-4 md:py-5 text-sm md:text-lg font-extrabold text-nyjBlue border-b-4 border-nyjBlue bg-white transition-colors";
+      btnPlan.className = "flex-1 py-4 md:py-5 text-sm md:text-lg font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-gray-50 transition-colors";
       document.getElementById('detail-tab-history').classList.remove('hidden');
       document.getElementById('detail-tab-plan').classList.add('hidden');
   }
@@ -372,20 +371,20 @@ function renderAttachmentRows(proj) {
     const safeFilename = encodeURIComponent(filename);
 
     return `
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-5 bg-white rounded-2xl border border-gray-200 shadow-sm gap-5 hover:shadow-md transition-shadow">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-4 md:p-5 bg-white rounded-xl md:rounded-2xl border border-gray-200 shadow-sm gap-4 md:gap-5 hover:shadow-md transition-shadow">
         <div>
-          <div class="flex items-center gap-3 mb-2">
-            <span class="text-xs font-extrabold border px-3 py-1 rounded-lg shadow-sm ${cat.badge}">${cat.name}</span>
-            <span class="text-base font-extrabold text-gray-900">문서 연동 상태</span>
+          <div class="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
+            <span class="text-[0.65rem] md:text-xs font-extrabold border px-2 py-1 md:px-3 rounded-lg shadow-sm ${cat.badge}">${cat.name}</span>
+            <span class="text-sm md:text-base font-extrabold text-gray-900">문서 연동 상태</span>
           </div>
-          <div class="text-sm font-bold text-gray-800">
+          <div class="text-xs md:text-sm font-bold text-gray-800 mt-1 md:mt-0">
             ${isRegistered 
               ? `<span class="text-green-700 font-black mr-2 bg-green-50 px-2 py-1 rounded-md border border-green-100">✓ 등록됨</span> <span class="text-gray-700">${filename}</span>` 
               : `<span class="text-gray-500 italic bg-gray-50 px-2 py-1 rounded-md">미등록 (data.xlsx에 파일명 입력 필요)</span>`}
           </div>
         </div>
-        <button class="w-full md:w-auto px-6 py-3.5 text-sm font-extrabold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm ${isRegistered ? 'bg-nyjBlue text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-200' : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'}" ${isRegistered ? `onclick="window.open('./${safeFilename}', '_blank')"` : 'disabled'}>
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        <button class="w-full md:w-auto px-5 py-3 md:px-6 md:py-3.5 text-xs md:text-sm font-extrabold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm ${isRegistered ? 'bg-nyjBlue text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-200' : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'}" ${isRegistered ? `onclick="window.open('./${safeFilename}', '_blank')"` : 'disabled'}>
+          <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
           ${isRegistered ? '서버에서 다운로드' : '다운로드 불가'}
         </button>
       </div>
@@ -404,7 +403,7 @@ function filterDashboard() {
     if (match) count++;
   });
   const cntEl = document.getElementById('searchResultCount');
-  if(cntEl) cntEl.innerText = `총 ${count}개 검색됨`;
+  if(cntEl) cntEl.innerText = `검색 결과: ${count}건`;
 }
 
 function updateRegionSelect() {
@@ -426,7 +425,7 @@ function renderGrievanceTables(dataList) {
   tbody.innerHTML = '';
 
   if (!dataList || dataList.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" class="text-center p-10 text-gray-500 font-extrabold text-lg bg-white">데이터가 없습니다.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center p-6 md:p-10 text-gray-500 font-extrabold text-base md:text-lg bg-white">데이터가 없습니다.</td></tr>`;
     return;
   }
 
@@ -441,16 +440,16 @@ function renderGrievanceTables(dataList) {
   });
 
   regionBox.innerHTML = Object.entries(regionCounts).map(([reg, count]) => `
-    <div class="bg-white border-2 border-gray-100 p-4 rounded-2xl text-center shadow-sm hover:border-nyjGreen transition-colors">
-      <div class="text-sm font-extrabold text-gray-600 mb-2">${reg}</div>
-      <div class="text-2xl font-black text-nyjGreen">${count}건</div>
+    <div class="bg-white border-2 border-gray-100 p-3 md:p-4 rounded-xl md:rounded-2xl text-center shadow-sm hover:border-nyjGreen transition-colors">
+      <div class="text-xs md:text-sm font-extrabold text-gray-600 mb-1 md:mb-2">${reg}</div>
+      <div class="text-xl md:text-2xl font-black text-nyjGreen">${count}건</div>
     </div>
   `).join('');
 
   summaryBox.innerHTML = Object.entries(statusCounts).map(([status, count]) => `
-    <div class="bg-white border-2 border-gray-100 p-4 rounded-2xl text-center shadow-sm hover:border-nyjBlue transition-colors">
-      <div class="text-sm font-extrabold text-gray-600 mb-2">${status}</div>
-      <div class="text-2xl font-black text-nyjBlue">${count}건</div>
+    <div class="bg-white border-2 border-gray-100 p-3 md:p-4 rounded-xl md:rounded-2xl text-center shadow-sm hover:border-nyjBlue transition-colors">
+      <div class="text-xs md:text-sm font-extrabold text-gray-600 mb-1 md:mb-2">${status}</div>
+      <div class="text-xl md:text-2xl font-black text-nyjBlue">${count}건</div>
     </div>
   `).join('');
 
@@ -463,18 +462,18 @@ function renderGrievanceTables(dataList) {
     else if (item.rawStatus.includes('완료')) badgeStyle = 'bg-blue-100 text-blue-800 border-blue-300';
 
     tbody.innerHTML += `
-      <tr class="hover:bg-blue-50/50 transition-colors bg-white group">
-        <td class="p-4 text-center font-extrabold text-gray-500">${idx + 1}</td>
-        <td class="p-4 font-black text-gray-900">${item.corpName}</td>
-        <td class="p-4 font-bold text-gray-700">${item.location}</td>
-        <td class="p-4"><span class="text-xs px-2.5 py-1.5 bg-gray-200 border border-gray-300 rounded-lg font-extrabold text-gray-800 whitespace-nowrap shadow-sm">${item.region}</span></td>
-        <td class="p-4 font-bold text-gray-700 whitespace-nowrap">${item.field}</td>
-        <td class="p-4 font-bold text-gray-800 leading-loose">${item.grievanceContent}</td>
-        <td class="p-4 font-bold text-gray-800 leading-loose border-l-2 border-gray-100">
+      <tr class="hover:bg-blue-50/50 transition-colors bg-white group border-b-2 border-gray-100">
+        <td class="p-3 md:p-4 text-center font-extrabold text-gray-500 whitespace-nowrap">${idx + 1}</td>
+        <td class="p-3 md:p-4 font-black text-gray-900 whitespace-nowrap">${item.corpName}</td>
+        <td class="p-3 md:p-4 font-bold text-gray-700 whitespace-nowrap">${item.location}</td>
+        <td class="p-3 md:p-4"><span class="text-[0.65rem] md:text-xs px-2 md:px-2.5 py-1 md:py-1.5 bg-gray-200 border border-gray-300 rounded-lg font-extrabold text-gray-800 whitespace-nowrap shadow-sm">${item.region}</span></td>
+        <td class="p-3 md:p-4 font-bold text-gray-700 whitespace-nowrap">${item.field}</td>
+        <td class="p-3 md:p-4 font-bold text-gray-800 leading-loose min-w-[200px]">${item.grievanceContent}</td>
+        <td class="p-3 md:p-4 font-bold text-gray-800 leading-loose border-l-2 border-gray-100 min-w-[250px]">
             <div class="bg-blue-50/50 p-2 rounded-lg mb-2 border border-blue-100"><span class="font-black text-nyjSkyBlue mr-2">상담:</span>${item.consultContent}</div>
             <div class="bg-indigo-50/50 p-2 rounded-lg border border-indigo-100"><span class="font-black text-nyjBlue mr-2">처리:</span>${item.processContent}</div>
         </td>
-        <td class="p-4 text-center"><span class="text-sm font-extrabold px-3 py-1.5 rounded-xl border-2 whitespace-nowrap shadow-sm ${badgeStyle}">${item.rawStatus}</span></td>
+        <td class="p-3 md:p-4 text-center"><span class="text-xs md:text-sm font-extrabold px-2.5 md:px-3 py-1 md:py-1.5 rounded-xl border-2 whitespace-nowrap shadow-sm ${badgeStyle}">${item.rawStatus}</span></td>
       </tr>
     `;
   });
@@ -561,7 +560,7 @@ function initCharts() {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 14, padding: 18, font: { size: 14, weight: '900' }, color: '#1e293b' } },
+            legend: { position: 'bottom', labels: { boxWidth: 14, padding: 18, font: { size: window.innerWidth > 768 ? 14 : 12, weight: '900' }, color: '#1e293b' } },
             tooltip: {
               backgroundColor: 'rgba(255,255,255,0.95)',
               titleColor: '#0f172a',
@@ -601,11 +600,11 @@ function initCharts() {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            x: { stacked: true, grid: { display: false }, ticks: { font: { size: 14, weight: 'bold' }, color: '#1e293b' } },
-            y: { stacked: true, grid: { color: 'rgba(0,0,0,0.1)' }, ticks: { font: { size: 14, weight: 'bold' }, color: '#1e293b', callback: v => v + '억' } }
+            x: { stacked: true, grid: { display: false }, ticks: { font: { size: window.innerWidth > 768 ? 14 : 11, weight: 'bold' }, color: '#1e293b' } },
+            y: { stacked: true, grid: { color: 'rgba(0,0,0,0.1)' }, ticks: { font: { size: window.innerWidth > 768 ? 14 : 11, weight: 'bold' }, color: '#1e293b', callback: v => v + '억' } }
           },
           plugins: {
-            legend: { position: 'top', labels: { boxWidth: 14, font: { size: 14, weight: '900' }, color: '#1e293b' } },
+            legend: { position: 'top', labels: { boxWidth: 14, font: { size: window.innerWidth > 768 ? 14 : 12, weight: '900' }, color: '#1e293b' } },
             tooltip: {
                 backgroundColor: 'rgba(255,255,255,0.95)',
                 titleColor: '#0f172a',
@@ -621,4 +620,3 @@ function initCharts() {
       });
   }
 }
-// 앱 초기화 로직 제거됨. 인증 완료 후 fetchExcelData()가 호출됩니다.
