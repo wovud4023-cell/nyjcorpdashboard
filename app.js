@@ -24,7 +24,8 @@ function toggleSidebar() {
     sidebar.classList.toggle('-translate-x-full');
     overlay.classList.toggle('hidden');
   } else {
-    // Desktop collapse logic if needed, currently hidden on desktop
+    // Desktop: collapse to the left by applying negative margin
+    sidebar.classList.toggle('-ml-80');
   }
 }
 
@@ -32,6 +33,7 @@ window.addEventListener('resize', () => {
   if (window.innerWidth > 768) {
     document.getElementById('sidebar').classList.remove('-translate-x-full');
     document.getElementById('overlay').classList.add('hidden');
+    // Ensure sidebar is visible on resize to desktop if it wasn't toggled off explicitly
   }
 });
 
@@ -135,7 +137,7 @@ function animateNumber(elementId, targetVal, isBillion) {
             current = targetVal;
         }
         if(isBillion) {
-            el.innerHTML = current.toFixed(2) + '<span class="text-sm font-bold ml-1">억</span>';
+            el.innerHTML = current.toFixed(2) + '<span class="text-xl font-extrabold ml-1">억</span>';
         } else {
             el.innerHTML = current.toFixed(2);
         }
@@ -153,59 +155,64 @@ function updateDashboardStats() {
     if (catBudgets[p.catId] !== undefined) catBudgets[p.catId] += p.finance.total;
   });
 
-  document.getElementById('banner-total-count').innerText = `2026년 남양주시 4대 분야 ${PROJECTS_DATA.length}개 대표 시책 예산액 현황`;
+  const countEl = document.getElementById('banner-total-count');
+  if(countEl) countEl.innerText = `2026년 남양주시 4대 분야 ${PROJECTS_DATA.length}개 대표 시책 예산액 현황`;
   
   animateNumber('banner-total-budget', total / 100000, true);
   animateNumber('banner-city-budget', cityFund / 100000, true);
   
-  document.getElementById('sidebar-total-budget').innerText = (total / 100000).toFixed(2) + '억';
-  document.getElementById('sidebar-cat1-budget').innerText = (catBudgets[1] / 100000).toFixed(2) + '억';
-  document.getElementById('sidebar-cat2-budget').innerText = (catBudgets[2] / 100000).toFixed(2) + '억';
-  document.getElementById('sidebar-cat3-budget').innerText = (catBudgets[3] / 100000).toFixed(2) + '억';
-  document.getElementById('sidebar-cat4-budget').innerText = (catBudgets[4] / 100000).toFixed(2) + '억';
+  const setTxt = (id, val) => { const e = document.getElementById(id); if(e) e.innerText = val; };
+  setTxt('sidebar-total-budget', (total / 100000).toFixed(2) + '억');
+  setTxt('sidebar-cat1-budget', (catBudgets[1] / 100000).toFixed(2) + '억');
+  setTxt('sidebar-cat2-budget', (catBudgets[2] / 100000).toFixed(2) + '억');
+  setTxt('sidebar-cat3-budget', (catBudgets[3] / 100000).toFixed(2) + '억');
+  setTxt('sidebar-cat4-budget', (catBudgets[4] / 100000).toFixed(2) + '억');
 }
 
 function renderSidebarMenu() {
   const makeNavItem = (p, badgeClass) => `
-    <div class="nav-item-hover px-2 py-2 rounded-lg flex justify-between items-center cursor-pointer transition-all border-l-2 border-transparent hover:border-gray-400 gap-2" id="nav-${p.id}" onclick="openProjectDetail('${p.id}')">
-      <span class="text-xs text-gray-800 font-bold truncate flex-1" title="${p.title}">· ${p.shortTitle}</span>
-      <span class="text-[0.65rem] font-bold px-1.5 py-0.5 rounded-md whitespace-nowrap shadow-sm ${badgeClass}">${p.badge}</span>
+    <div class="nav-item-hover px-3 py-3 rounded-xl flex justify-between items-center cursor-pointer transition-all border-l-4 border-transparent hover:border-gray-400 gap-3 bg-white/40 mb-2 shadow-sm" id="nav-${p.id}" onclick="openProjectDetail('${p.id}')">
+      <span class="text-sm text-gray-900 font-extrabold truncate flex-1" title="${p.title}">· ${p.shortTitle}</span>
+      <span class="text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap shadow-sm ${badgeClass}">${p.badge}</span>
     </div>
   `;
 
-  document.getElementById('dynamic-nav-cat1').innerHTML = PROJECTS_DATA.filter(p => p.catId === 1).map(p => makeNavItem(p, 'bg-blue-100 text-blue-700')).join('');
-  document.getElementById('dynamic-nav-cat2').innerHTML = PROJECTS_DATA.filter(p => p.catId === 2).map(p => makeNavItem(p, 'bg-purple-100 text-purple-700')).join('');
-  document.getElementById('dynamic-nav-cat3').innerHTML = PROJECTS_DATA.filter(p => p.catId === 3).map(p => makeNavItem(p, 'bg-green-100 text-green-700')).join('');
-  document.getElementById('dynamic-nav-cat4').innerHTML = PROJECTS_DATA.filter(p => p.catId === 4).map(p => makeNavItem(p, 'bg-orange-100 text-orange-700')).join('');
+  const setHTML = (id, html) => { const e = document.getElementById(id); if(e) e.innerHTML = html; };
+  setHTML('dynamic-nav-cat1', PROJECTS_DATA.filter(p => p.catId === 1).map(p => makeNavItem(p, 'bg-blue-100 text-blue-800 border border-blue-200')).join(''));
+  setHTML('dynamic-nav-cat2', PROJECTS_DATA.filter(p => p.catId === 2).map(p => makeNavItem(p, 'bg-purple-100 text-purple-800 border border-purple-200')).join(''));
+  setHTML('dynamic-nav-cat3', PROJECTS_DATA.filter(p => p.catId === 3).map(p => makeNavItem(p, 'bg-green-100 text-green-800 border border-green-200')).join(''));
+  setHTML('dynamic-nav-cat4', PROJECTS_DATA.filter(p => p.catId === 4).map(p => makeNavItem(p, 'bg-orange-100 text-orange-800 border border-orange-200')).join(''));
 }
 
 function renderDashboardCards() {
   const grid = document.getElementById('searchableCardsGrid');
+  if(!grid) return;
   grid.innerHTML = PROJECTS_DATA.map(p => {
     let borderColor = p.catId === 2 ? 'border-t-purple-500' : p.catId === 3 ? 'border-t-green-500' : p.catId === 4 ? 'border-t-orange-500' : 'border-t-blue-600';
-    let badgeBg = p.catId === 2 ? 'bg-purple-100 text-purple-700' : p.catId === 3 ? 'bg-green-100 text-green-700' : p.catId === 4 ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700';
+    let badgeBg = p.catId === 2 ? 'bg-purple-100 text-purple-800 border border-purple-200' : p.catId === 3 ? 'bg-green-100 text-green-800 border border-green-200' : p.catId === 4 ? 'bg-orange-100 text-orange-800 border border-orange-200' : 'bg-blue-100 text-blue-800 border border-blue-200';
 
     return `
-      <div class="glass-card rounded-2xl p-6 flex flex-col justify-between group border-t-4 ${borderColor} searchable-card" data-category="${p.catName}">
+      <div class="glass-card rounded-3xl p-7 flex flex-col justify-between group border-t-8 ${borderColor} searchable-card shadow-md hover:shadow-xl" data-category="${p.catName}">
         <div>
-          <div class="flex justify-between items-start mb-4 gap-2">
-            <h3 class="text-base md:text-lg font-bold text-gray-900 leading-tight group-hover:text-nyjBlue transition-colors">${p.title}</h3>
-            <span class="text-xs font-bold px-2 py-1 rounded-md ${badgeBg} whitespace-nowrap shadow-sm">${p.badge}</span>
+          <div class="flex justify-between items-start mb-5 gap-3">
+            <h3 class="text-lg md:text-xl font-extrabold text-gray-900 leading-tight group-hover:text-nyjBlue transition-colors">${p.title}</h3>
+            <span class="text-sm font-bold px-3 py-1.5 rounded-lg ${badgeBg} whitespace-nowrap shadow-sm">${p.badge}</span>
           </div>
-          <p class="text-sm text-gray-800 font-medium mb-6 leading-relaxed line-clamp-3">${p.desc}</p>
+          <p class="text-base text-gray-800 font-bold mb-8 leading-relaxed line-clamp-3">${p.desc}</p>
         </div>
         <div>
-          <div class="text-xs text-gray-700 font-medium mb-4 bg-white/70 p-2 rounded-lg border border-white">
-            <span class="font-bold text-gray-900">수행:</span> ${p.finance.agency}
+          <div class="text-sm text-gray-800 font-bold mb-5 bg-white/80 p-3 rounded-xl border border-gray-200 shadow-sm">
+            <span class="font-extrabold text-gray-900">수행기관:</span> ${p.finance.agency}
           </div>
-          <button class="w-full py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-nyjBlue font-bold rounded-xl text-sm transition-all border border-blue-100 shadow-sm" onclick="openProjectDetail('${p.id}')">
+          <button class="w-full py-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-nyjBlue font-extrabold rounded-2xl text-base transition-all border border-blue-200 shadow-md focus:ring-4 focus:ring-blue-100" onclick="openProjectDetail('${p.id}')">
             상세내용 및 문서 관리 &rarr;
           </button>
         </div>
       </div>
     `;
   }).join('');
-  document.getElementById('searchResultCount').innerText = `총 ${PROJECTS_DATA.length}개`;
+  const cnt = document.getElementById('searchResultCount');
+  if(cnt) cnt.innerText = `총 ${PROJECTS_DATA.length}개 사업`;
 }
 
 // SHA-256 해시 함수
@@ -227,10 +234,10 @@ async function verifyPassword() {
     
     const badge = document.getElementById("grievance-badge");
     if(badge) {
-        badge.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg> 조회`;
-        badge.className = "text-[0.7rem] bg-green-100 text-green-700 px-2 py-0.5 rounded-full border border-green-200 shadow-sm font-bold flex items-center gap-1";
+        badge.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg> 열람가능`;
+        badge.className = "text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full border border-green-300 shadow-sm font-bold flex items-center gap-1.5";
     }
-    document.getElementById("nav-grievance").querySelector('svg').classList.replace('text-red-400', 'text-green-500');
+    document.getElementById("nav-grievance").querySelector('svg').classList.replace('text-red-500', 'text-green-600');
     
     switchView('grievance'); 
   } else {
@@ -251,7 +258,7 @@ function switchView(viewId) {
   document.querySelectorAll('.nav-item-active').forEach(el => {
       if(el.id === 'nav-dashboard') {
           el.classList.remove('nav-item-active');
-          el.classList.add('text-gray-800');
+          el.classList.add('text-gray-900');
       }
   });
 
@@ -269,14 +276,18 @@ function switchView(viewId) {
   };
 
   if (meta[viewId]) {
-    document.getElementById('view-title').innerText = meta[viewId].title;
-    document.getElementById('view-desc').innerText = meta[viewId].desc;
+    const titleEl = document.getElementById('view-title');
+    const descEl = document.getElementById('view-desc');
+    if(titleEl) titleEl.innerText = meta[viewId].title;
+    if(descEl) descEl.innerText = meta[viewId].desc;
   }
   
   if (viewId === 'dashboard') {
     const dNav = document.getElementById('nav-dashboard');
-    dNav.classList.add('nav-item-active');
-    dNav.classList.remove('text-gray-800');
+    if(dNav) {
+        dNav.classList.add('nav-item-active');
+        dNav.classList.remove('text-gray-900');
+    }
   }
 }
 
@@ -286,37 +297,47 @@ function openProjectDetail(bizId) {
 
   switchView('project-detail');
 
-  document.getElementById('view-title').innerText = proj.title;
-  document.getElementById('view-desc').innerText = `${proj.catName} - ${proj.catSub} | ${proj.desc}`;
-  document.getElementById('detail-proj-desc').innerText = proj.desc;
-  document.getElementById('detail-proj-agency').innerText = proj.finance.agency;
+  const setTxt = (id, val) => { const e = document.getElementById(id); if(e) e.innerText = val; };
+  setTxt('view-title', proj.title);
+  setTxt('view-desc', `${proj.catName} - ${proj.catSub} | ${proj.desc}`);
+  setTxt('detail-proj-desc', proj.desc);
+  setTxt('detail-proj-agency', proj.finance.agency);
 
   const fmt = v => v === 0 ? '-' : v.toLocaleString() + '천원';
-  document.getElementById('fin-total').innerText = fmt(proj.finance.total);
-  document.getElementById('fin-city').innerHTML = proj.finance.fund > 0 ? `${fmt(proj.finance.city)} <br><span class="text-[0.65rem] text-orange-600 font-bold">(기금: ${fmt(proj.finance.fund)})</span>` : fmt(proj.finance.city);
-  document.getElementById('fin-prov').innerText = fmt(proj.finance.prov);
-  document.getElementById('fin-nat').innerText = fmt(proj.finance.nat);
-  document.getElementById('fin-matching').innerText = proj.finance.matching;
-  document.getElementById('fin-exec').innerText = proj.finance.agency;
+  setTxt('fin-total', fmt(proj.finance.total));
+  
+  const finCity = document.getElementById('fin-city');
+  if(finCity) finCity.innerHTML = proj.finance.fund > 0 ? `${fmt(proj.finance.city)} <br><span class="text-sm text-orange-600 font-extrabold mt-1 inline-block">(기금: ${fmt(proj.finance.fund)})</span>` : fmt(proj.finance.city);
+  
+  setTxt('fin-prov', fmt(proj.finance.prov));
+  setTxt('fin-nat', fmt(proj.finance.nat));
+  setTxt('fin-matching', proj.finance.matching);
+  setTxt('fin-exec', proj.finance.agency);
 
-  document.getElementById('detail-tab-plan').innerHTML = proj.plans.map(pl => `
-    <div class="bg-white/90 p-5 rounded-2xl border border-gray-200 shadow-sm">
-      <div class="flex justify-between items-start mb-3 gap-2">
-        <span class="font-bold text-nyjBlue text-sm">${pl.title}</span>
-        <span class="text-[0.65rem] font-bold bg-green-100 text-green-700 px-2 py-1 rounded-md whitespace-nowrap">${pl.budget}</span>
-      </div>
-      <div class="text-xs text-gray-800 font-medium leading-relaxed whitespace-pre-wrap">${pl.desc}</div>
-    </div>
-  `).join('');
+  const planEl = document.getElementById('detail-tab-plan');
+  if(planEl) {
+      planEl.innerHTML = proj.plans.map(pl => `
+        <div class="bg-white p-6 rounded-3xl border border-gray-200 shadow-md">
+          <div class="flex justify-between items-start mb-4 gap-3">
+            <span class="font-extrabold text-nyjBlue text-base">${pl.title}</span>
+            <span class="text-sm font-bold bg-green-100 text-green-800 border border-green-200 px-3 py-1.5 rounded-lg whitespace-nowrap">${pl.budget}</span>
+          </div>
+          <div class="text-sm md:text-base text-gray-800 font-bold leading-relaxed whitespace-pre-wrap">${pl.desc}</div>
+        </div>
+      `).join('');
+  }
 
-  document.getElementById('detail-history-custom').innerHTML = `
-    <h4 class="text-sm font-bold text-nyjBlue mb-3 border-l-4 border-nyjSkyBlue pl-2">신청방법 및 문의처 세부안내</h4>
-    <div class="space-y-2 text-xs text-gray-800 font-medium">
-        <p><b class="text-gray-900">지원 대상:</b> ${proj.target}</p>
-        <p><b class="text-gray-900">신청 방법:</b> ${proj.applyInfo}</p>
-        <p><b class="text-gray-900">문의 부서:</b> ${proj.contact}</p>
-    </div>
-  `;
+  const histEl = document.getElementById('detail-history-custom');
+  if(histEl) {
+      histEl.innerHTML = `
+        <h4 class="text-base font-extrabold text-nyjBlue mb-4 border-l-[5px] border-nyjSkyBlue pl-3">신청방법 및 문의처 세부안내</h4>
+        <div class="space-y-3 text-base text-gray-800 font-bold bg-gray-50 p-5 rounded-2xl border border-gray-100">
+            <p><b class="text-gray-900">지원 대상:</b> ${proj.target}</p>
+            <p><b class="text-gray-900">신청 방법:</b> ${proj.applyInfo}</p>
+            <p><b class="text-gray-900">문의 부서:</b> ${proj.contact}</p>
+        </div>
+      `;
+  }
 
   renderAttachmentRows(proj);
   switchDetailTab('plan');
@@ -328,47 +349,51 @@ function switchDetailTab(type) {
   const btnPlan = document.getElementById('tab-btn-plan');
   const btnHist = document.getElementById('tab-btn-history');
   
+  if(!btnPlan || !btnHist) return;
+
   if(isPlan) {
-      btnPlan.className = "flex-1 py-4 text-sm font-bold text-nyjBlue border-b-2 border-nyjBlue bg-white transition-colors";
-      btnHist.className = "flex-1 py-4 text-sm font-bold text-gray-600 border-b-2 border-transparent hover:bg-gray-50 transition-colors";
+      btnPlan.className = "flex-1 py-5 text-base md:text-lg font-extrabold text-nyjBlue border-b-4 border-nyjBlue bg-white transition-colors";
+      btnHist.className = "flex-1 py-5 text-base md:text-lg font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-gray-50 transition-colors";
       document.getElementById('detail-tab-plan').classList.remove('hidden');
       document.getElementById('detail-tab-history').classList.add('hidden');
   } else {
-      btnHist.className = "flex-1 py-4 text-sm font-bold text-nyjBlue border-b-2 border-nyjBlue bg-white transition-colors";
-      btnPlan.className = "flex-1 py-4 text-sm font-bold text-gray-600 border-b-2 border-transparent hover:bg-gray-50 transition-colors";
+      btnHist.className = "flex-1 py-5 text-base md:text-lg font-extrabold text-nyjBlue border-b-4 border-nyjBlue bg-white transition-colors";
+      btnPlan.className = "flex-1 py-5 text-base md:text-lg font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-gray-50 transition-colors";
       document.getElementById('detail-tab-history').classList.remove('hidden');
       document.getElementById('detail-tab-plan').classList.add('hidden');
   }
 }
 
 const FILE_CATS = [
-  { key: 'official', name: '사업관련 공문', badge: 'bg-blue-100 text-blue-700 border-blue-200' },
-  { key: 'plan', name: '추진계획/계획서', badge: 'bg-green-100 text-green-700 border-green-200' },
-  { key: 'status', name: '추진현황/정산서', badge: 'bg-orange-100 text-orange-700 border-orange-200' }
+  { key: 'official', name: '사업관련 공문', badge: 'bg-blue-100 text-blue-800 border-blue-200' },
+  { key: 'plan', name: '추진계획/계획서', badge: 'bg-green-100 text-green-800 border-green-200' },
+  { key: 'status', name: '추진현황/정산서', badge: 'bg-orange-100 text-orange-800 border-orange-200' }
 ];
 
 function renderAttachmentRows(proj) {
-  document.getElementById('detail-attachments-container').innerHTML = FILE_CATS.map(cat => {
+  const cont = document.getElementById('detail-attachments-container');
+  if(!cont) return;
+  cont.innerHTML = FILE_CATS.map(cat => {
     const filename = proj.docs[cat.key];
     const isRegistered = Boolean(filename && filename.length > 0);
     const safeFilename = encodeURIComponent(filename);
 
     return `
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-white/70 rounded-xl border border-gray-100 shadow-sm gap-4">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-5 bg-white rounded-2xl border border-gray-200 shadow-sm gap-5 hover:shadow-md transition-shadow">
         <div>
-          <div class="flex items-center gap-2 mb-1">
-            <span class="text-[0.7rem] font-bold border px-2 py-0.5 rounded-md ${cat.badge}">${cat.name}</span>
-            <span class="text-sm font-bold text-gray-900">문서 연동</span>
+          <div class="flex items-center gap-3 mb-2">
+            <span class="text-xs font-extrabold border px-3 py-1 rounded-lg shadow-sm ${cat.badge}">${cat.name}</span>
+            <span class="text-base font-extrabold text-gray-900">문서 연동 상태</span>
           </div>
-          <div class="text-xs font-medium text-gray-800">
+          <div class="text-sm font-bold text-gray-800">
             ${isRegistered 
-              ? `<span class="text-green-700 font-bold mr-1">✓ 등록됨:</span> ${filename}` 
-              : `<span class="text-gray-500 italic">미등록 상태 (data.xlsx에 파일명 입력 필요)</span>`}
+              ? `<span class="text-green-700 font-black mr-2 bg-green-50 px-2 py-1 rounded-md border border-green-100">✓ 등록됨</span> <span class="text-gray-700">${filename}</span>` 
+              : `<span class="text-gray-500 italic bg-gray-50 px-2 py-1 rounded-md">미등록 (data.xlsx에 파일명 입력 필요)</span>`}
           </div>
         </div>
-        <button class="w-full md:w-auto px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1 ${isRegistered ? 'bg-nyjBlue text-white hover:bg-blue-800' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}" ${isRegistered ? `onclick="window.open('./${safeFilename}', '_blank')"` : 'disabled'}>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          다운로드
+        <button class="w-full md:w-auto px-6 py-3.5 text-sm font-extrabold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm ${isRegistered ? 'bg-nyjBlue text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-200' : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'}" ${isRegistered ? `onclick="window.open('./${safeFilename}', '_blank')"` : 'disabled'}>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          ${isRegistered ? '서버에서 다운로드' : '다운로드 불가'}
         </button>
       </div>
     `;
@@ -385,24 +410,30 @@ function filterDashboard() {
     card.style.display = match ? 'flex' : 'none';
     if (match) count++;
   });
-  document.getElementById('searchResultCount').innerText = `총 ${count}개`;
+  const cntEl = document.getElementById('searchResultCount');
+  if(cntEl) cntEl.innerText = `총 ${count}개 검색됨`;
 }
 
 function updateRegionSelect() {
   const select = document.getElementById('regionFilter');
+  if(!select) return;
   const regions = [...new Set(GRIEVANCE_DATA.map(item => item.region || '기타'))].sort();
-  select.innerHTML = '<option value="all">전체 지역</option>' + regions.map(r => `<option value="${r}">${r}</option>`).join('');
+  select.innerHTML = '<option value="all">📍 전체 지역 검색</option>' + regions.map(r => `<option value="${r}">${r}</option>`).join('');
 }
 
 function renderGrievanceTables(dataList) {
   const tbody = document.getElementById('grievance-tbody');
   const summaryBox = document.getElementById('grievance-summary-content');
   const regionBox = document.getElementById('region-summary-content');
-  const selectedRegion = document.getElementById('regionFilter').value;
+  const select = document.getElementById('regionFilter');
+  const selectedRegion = select ? select.value : 'all';
+  
+  if(!tbody || !summaryBox || !regionBox) return;
+  
   tbody.innerHTML = '';
 
   if (!dataList || dataList.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" class="text-center p-8 text-gray-500 font-bold">데이터가 없습니다.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center p-10 text-gray-500 font-extrabold text-lg bg-white">데이터가 없습니다.</td></tr>`;
     return;
   }
 
@@ -417,41 +448,45 @@ function renderGrievanceTables(dataList) {
   });
 
   regionBox.innerHTML = Object.entries(regionCounts).map(([reg, count]) => `
-    <div class="bg-white/80 border border-gray-100 p-3 rounded-xl text-center shadow-sm">
-      <div class="text-[0.7rem] font-bold text-gray-700 mb-1">${reg}</div>
-      <div class="text-lg font-black text-nyjGreen">${count}건</div>
+    <div class="bg-white border-2 border-gray-100 p-4 rounded-2xl text-center shadow-sm hover:border-nyjGreen transition-colors">
+      <div class="text-sm font-extrabold text-gray-600 mb-2">${reg}</div>
+      <div class="text-2xl font-black text-nyjGreen">${count}건</div>
     </div>
   `).join('');
 
   summaryBox.innerHTML = Object.entries(statusCounts).map(([status, count]) => `
-    <div class="bg-white/80 border border-gray-100 p-3 rounded-xl text-center shadow-sm">
-      <div class="text-[0.7rem] font-bold text-gray-700 mb-1">${status}</div>
-      <div class="text-lg font-black text-nyjBlue">${count}건</div>
+    <div class="bg-white border-2 border-gray-100 p-4 rounded-2xl text-center shadow-sm hover:border-nyjBlue transition-colors">
+      <div class="text-sm font-extrabold text-gray-600 mb-2">${status}</div>
+      <div class="text-2xl font-black text-nyjBlue">${count}건</div>
     </div>
   `).join('');
 
   let filteredData = dataList.filter(item => selectedRegion === 'all' || item.region === selectedRegion);
 
   filteredData.forEach((item, idx) => {
-    let badgeStyle = 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    if (item.rawStatus.includes('진행 중')) badgeStyle = 'bg-green-100 text-green-800 border-green-200';
-    else if (item.rawStatus.includes('불가')) badgeStyle = 'bg-red-100 text-red-800 border-red-200';
-    else if (item.rawStatus.includes('완료')) badgeStyle = 'bg-blue-100 text-blue-800 border-blue-200';
+    let badgeStyle = 'bg-yellow-100 text-yellow-800 border-yellow-300';
+    if (item.rawStatus.includes('진행 중')) badgeStyle = 'bg-green-100 text-green-800 border-green-300';
+    else if (item.rawStatus.includes('불가')) badgeStyle = 'bg-red-100 text-red-800 border-red-300';
+    else if (item.rawStatus.includes('완료')) badgeStyle = 'bg-blue-100 text-blue-800 border-blue-300';
 
     tbody.innerHTML += `
-      <tr class="hover:bg-gray-100/70 transition-colors">
-        <td class="p-3 text-center font-bold text-gray-600">${idx + 1}</td>
-        <td class="p-3 font-bold text-gray-900">${item.corpName}</td>
-        <td class="p-3 font-medium text-gray-800">${item.location}</td>
-        <td class="p-3"><span class="text-[0.65rem] px-2 py-1 bg-gray-200 rounded-md font-bold text-gray-800 whitespace-nowrap">${item.region}</span></td>
-        <td class="p-3 font-medium text-gray-800 whitespace-nowrap">${item.field}</td>
-        <td class="p-3 font-medium text-gray-800 leading-relaxed">${item.grievanceContent}</td>
-        <td class="p-3 font-medium text-gray-800 leading-relaxed border-l border-gray-200"><span class="block mb-1 font-bold text-nyjSkyBlue">상담:</span>${item.consultContent}<br><span class="block mt-2 font-bold text-nyjBlue">처리:</span>${item.processContent}</td>
-        <td class="p-3 text-center"><span class="text-[0.7rem] font-bold px-2 py-1 rounded-md border whitespace-nowrap ${badgeStyle}">${item.rawStatus}</span></td>
+      <tr class="hover:bg-blue-50/50 transition-colors bg-white group">
+        <td class="p-4 text-center font-extrabold text-gray-500">${idx + 1}</td>
+        <td class="p-4 font-black text-gray-900">${item.corpName}</td>
+        <td class="p-4 font-bold text-gray-700">${item.location}</td>
+        <td class="p-4"><span class="text-xs px-2.5 py-1.5 bg-gray-200 border border-gray-300 rounded-lg font-extrabold text-gray-800 whitespace-nowrap shadow-sm">${item.region}</span></td>
+        <td class="p-4 font-bold text-gray-700 whitespace-nowrap">${item.field}</td>
+        <td class="p-4 font-bold text-gray-800 leading-loose">${item.grievanceContent}</td>
+        <td class="p-4 font-bold text-gray-800 leading-loose border-l-2 border-gray-100">
+            <div class="bg-blue-50/50 p-2 rounded-lg mb-2 border border-blue-100"><span class="font-black text-nyjSkyBlue mr-2">상담:</span>${item.consultContent}</div>
+            <div class="bg-indigo-50/50 p-2 rounded-lg border border-indigo-100"><span class="font-black text-nyjBlue mr-2">처리:</span>${item.processContent}</div>
+        </td>
+        <td class="p-4 text-center"><span class="text-sm font-extrabold px-3 py-1.5 rounded-xl border-2 whitespace-nowrap shadow-sm ${badgeStyle}">${item.rawStatus}</span></td>
       </tr>
     `;
   });
-  document.getElementById('grievance-count').innerText = `총 접수: ${dataList.length}건`;
+  const gCount = document.getElementById('grievance-count');
+  if(gCount) gCount.innerText = `현재 표시: ${filteredData.length}건`;
 }
 
 function filterGrievanceTable() { renderGrievanceTables(GRIEVANCE_DATA); }
@@ -480,8 +515,8 @@ function handleExcelUpload(event) {
       });
       updateRegionSelect();
       renderGrievanceTables(GRIEVANCE_DATA);
-      alert('엑셀 파일 갱신 완료');
-    } catch (err) { alert('오류 발생'); }
+      alert('업로드된 엑셀 파일로 현황판이 성공적으로 갱신되었습니다.');
+    } catch (err) { alert('엑셀 처리 중 오류가 발생했습니다.'); }
   };
   reader.readAsArrayBuffer(file);
   event.target.value = '';
@@ -489,7 +524,7 @@ function handleExcelUpload(event) {
 
 function clearGrievanceData() {
   fetchExcelData();
-  alert('깃허브 데이터로 다시 연동되었습니다.');
+  alert('깃허브(서버) 원본 데이터로 복원되었습니다.');
 }
 
 function initCharts() {
@@ -509,72 +544,89 @@ function initCharts() {
   });
 
   const totalOverall = Object.values(catBudgets).reduce((a, b) => a + b, 0);
-  document.getElementById('chart-donut-desc').innerText = `총 ${(totalOverall / 100000).toFixed(2)}억원`;
+  const chartDesc = document.getElementById('chart-donut-desc');
+  if(chartDesc) chartDesc.innerText = `총 ${(totalOverall / 100000).toFixed(2)}억원`;
 
   Chart.defaults.font.family = "'Pretendard', sans-serif";
-  Chart.defaults.color = "#475569"; // 진한 텍스트로 변경
+  Chart.defaults.color = "#334155"; // 더욱 진한 차트 텍스트
 
-  const donutCtx = document.getElementById('categoryDonutChart').getContext('2d');
-  donutChartInst = new Chart(donutCtx, {
-    type: 'doughnut',
-    data: {
-      labels: ['1. 기술지원', '2. 자금지원', '3. 판로개척', '4. 기업환경개선'],
-      datasets: [{
-        data: [catBudgets[1], catBudgets[2], catBudgets[3], catBudgets[4]],
-        backgroundColor: ['#002978', '#009fe3', '#00a760', '#ef7d00'],
-        borderWidth: 3,
-        borderColor: '#ffffff',
-        hoverOffset: 8
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15, font: { size: 11, weight: 'bold' } } },
-        tooltip: {
-          backgroundColor: 'rgba(255,255,255,0.95)',
-          titleColor: '#0f172a',
-          bodyColor: '#0f172a',
-          borderColor: '#cbd5e1',
-          borderWidth: 1,
-          padding: 12,
-          callbacks: {
-            label: function(ctx) {
-              const val = ctx.raw;
-              const pct = ((val / totalOverall) * 100).toFixed(1);
-              return ` ${ctx.label}: ${(val/100000).toFixed(2)}억원 (${pct}%)`;
+  const donutCtx = document.getElementById('categoryDonutChart');
+  if(donutCtx) {
+      donutChartInst = new Chart(donutCtx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: ['1. 기술지원', '2. 자금지원', '3. 판로개척', '4. 기업환경개선'],
+          datasets: [{
+            data: [catBudgets[1], catBudgets[2], catBudgets[3], catBudgets[4]],
+            backgroundColor: ['#002978', '#009fe3', '#00a760', '#ef7d00'],
+            borderWidth: 4,
+            borderColor: '#ffffff',
+            hoverOffset: 12
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 14, padding: 18, font: { size: 14, weight: '900' }, color: '#1e293b' } },
+            tooltip: {
+              backgroundColor: 'rgba(255,255,255,0.95)',
+              titleColor: '#0f172a',
+              bodyColor: '#0f172a',
+              borderColor: '#cbd5e1',
+              borderWidth: 2,
+              padding: 16,
+              titleFont: { size: 16, weight: 'bold' },
+              bodyFont: { size: 15, weight: 'bold' },
+              callbacks: {
+                label: function(ctx) {
+                  const val = ctx.raw;
+                  const pct = ((val / totalOverall) * 100).toFixed(1);
+                  return ` ${ctx.label}: ${(val/100000).toFixed(2)}억원 (${pct}%)`;
+                }
+              }
+            }
+          },
+          cutout: '65%'
+        }
+      });
+  }
+
+  const barCtx = document.getElementById('categoryBarChart');
+  if(barCtx) {
+      barChartInst = new Chart(barCtx.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: ['기술지원', '자금지원', '판로개척', '기업환경개선'],
+          datasets: [
+            { label: '시비', data: [catCity[1] / 100000, catCity[2] / 100000, catCity[3] / 100000, catCity[4] / 100000], backgroundColor: '#002978', borderRadius: 6 },
+            { label: '도비', data: [catProv[1] / 100000, catProv[2] / 100000, catProv[3] / 100000, catProv[4] / 100000], backgroundColor: '#00a760', borderRadius: 6 },
+            { label: '국비/기금', data: [catNatFund[1] / 100000, catNatFund[2] / 100000, catNatFund[3] / 100000, catNatFund[4] / 100000], backgroundColor: '#ef7d00', borderRadius: 6 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { stacked: true, grid: { display: false }, ticks: { font: { size: 14, weight: 'bold' }, color: '#1e293b' } },
+            y: { stacked: true, grid: { color: 'rgba(0,0,0,0.1)' }, ticks: { font: { size: 14, weight: 'bold' }, color: '#1e293b', callback: v => v + '억' } }
+          },
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 14, font: { size: 14, weight: '900' }, color: '#1e293b' } },
+            tooltip: {
+                backgroundColor: 'rgba(255,255,255,0.95)',
+                titleColor: '#0f172a',
+                bodyColor: '#0f172a',
+                borderColor: '#cbd5e1',
+                borderWidth: 2,
+                padding: 16,
+                titleFont: { size: 16, weight: 'bold' },
+                bodyFont: { size: 15, weight: 'bold' }
             }
           }
         }
-      },
-      cutout: '68%'
-    }
-  });
-
-  const barCtx = document.getElementById('categoryBarChart').getContext('2d');
-  barChartInst = new Chart(barCtx, {
-    type: 'bar',
-    data: {
-      labels: ['기술지원', '자금지원', '판로개척', '기업환경개선'],
-      datasets: [
-        { label: '시비', data: [catCity[1] / 100000, catCity[2] / 100000, catCity[3] / 100000, catCity[4] / 100000], backgroundColor: '#002978', borderRadius: 4 },
-        { label: '도비', data: [catProv[1] / 100000, catProv[2] / 100000, catProv[3] / 100000, catProv[4] / 100000], backgroundColor: '#00a760', borderRadius: 4 },
-        { label: '국비/기금', data: [catNatFund[1] / 100000, catNatFund[2] / 100000, catNatFund[3] / 100000, catNatFund[4] / 100000], backgroundColor: '#ef7d00', borderRadius: 4 }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: { stacked: true, grid: { display: false } },
-        y: { stacked: true, grid: { color: 'rgba(0,0,0,0.1)' }, ticks: { callback: v => v + '억' } }
-      },
-      plugins: {
-        legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11, weight: 'bold' } } }
-      }
-    }
-  });
+      });
+  }
 }
 
 window.addEventListener('DOMContentLoaded', fetchExcelData);
