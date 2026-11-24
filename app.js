@@ -1,6 +1,14 @@
 // 동적 데이터 배열 (오직 엑셀에서만 데이터를 가져옵니다)
 const PROJECTS_DATA = [];
 const GRIEVANCE_DATA = [];
+const INDUSTRY_DATA = {
+  kpi: [],
+  timeseries: [],
+  regions: [],
+  industries: [],
+  cities: []
+};
+let indCharts = { ts: null, commute: null, region: null, core: null, city: null };
 
 const catMap = {
   '기술지원': { id: 1, sub: '기술혁신과 R&D 역량을 키우는 남양주' },
@@ -31,6 +39,7 @@ window.addEventListener('resize', () => {
   if (window.innerWidth > 768) {
     document.getElementById('sidebar').classList.remove('-translate-x-full');
     document.getElementById('overlay').classList.add('hidden');
+    // Ensure sidebar is visible on resize to desktop if it wasn't toggled off explicitly
   }
 });
 
@@ -110,6 +119,7 @@ async function fetchExcelData() {
         });
       });
     }
+    parseIndustrySheets(workbook);
   } catch (e) {
     console.error("데이터 로드 실패:", e);
   }
@@ -120,6 +130,7 @@ async function fetchExcelData() {
   initCharts();
   updateRegionSelect();
   renderGrievanceTables(GRIEVANCE_DATA);
+  renderIndustryView();
 }
 
 function animateNumber(elementId, targetVal, isBillion) {
@@ -134,7 +145,7 @@ function animateNumber(elementId, targetVal, isBillion) {
             current = targetVal;
         }
         if(isBillion) {
-            el.innerHTML = current.toFixed(2) + '<span class="text-lg md:text-xl font-extrabold ml-1">억</span>';
+            el.innerHTML = current.toFixed(2) + '<span class="text-xl font-extrabold ml-1">억</span>';
         } else {
             el.innerHTML = current.toFixed(2);
         }
@@ -168,9 +179,9 @@ function updateDashboardStats() {
 
 function renderSidebarMenu() {
   const makeNavItem = (p, badgeClass) => `
-    <div class="nav-item-hover px-2 md:px-3 py-2.5 md:py-3 rounded-xl flex justify-between items-center cursor-pointer transition-all border-l-4 border-transparent hover:border-gray-400 gap-2 md:gap-3 bg-white/40 mb-1.5 md:mb-2 shadow-sm" id="nav-${p.id}" onclick="openProjectDetail('${p.id}')">
-      <span class="text-xs md:text-sm text-gray-900 font-extrabold truncate flex-1" title="${p.title}">· ${p.shortTitle}</span>
-      <span class="text-[0.65rem] md:text-xs font-bold px-1.5 py-0.5 md:px-2 md:py-1 rounded-lg whitespace-nowrap shadow-sm ${badgeClass}">${p.badge}</span>
+    <div class="nav-item-hover px-3 py-3 rounded-xl flex justify-between items-center cursor-pointer transition-all border-l-4 border-transparent hover:border-gray-400 gap-3 bg-white/40 mb-2 shadow-sm" id="nav-${p.id}" onclick="openProjectDetail('${p.id}')">
+      <span class="text-sm text-gray-900 font-extrabold truncate flex-1" title="${p.title}">· ${p.shortTitle}</span>
+      <span class="text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap shadow-sm ${badgeClass}">${p.badge}</span>
     </div>
   `;
 
@@ -189,19 +200,19 @@ function renderDashboardCards() {
     let badgeBg = p.catId === 2 ? 'bg-purple-100 text-purple-800 border border-purple-200' : p.catId === 3 ? 'bg-green-100 text-green-800 border border-green-200' : p.catId === 4 ? 'bg-orange-100 text-orange-800 border border-orange-200' : 'bg-blue-100 text-blue-800 border border-blue-200';
 
     return `
-      <div class="glass-card rounded-2xl md:rounded-3xl p-5 md:p-7 flex flex-col justify-between group border-t-[6px] md:border-t-8 ${borderColor} searchable-card shadow-md hover:shadow-xl" data-category="${p.catName}">
+      <div class="glass-card rounded-3xl p-7 flex flex-col justify-between group border-t-8 ${borderColor} searchable-card shadow-md hover:shadow-xl" data-category="${p.catName}">
         <div>
-          <div class="flex justify-between items-start mb-4 md:mb-5 gap-3">
-            <h3 class="text-base md:text-xl font-extrabold text-gray-900 leading-tight group-hover:text-nyjBlue transition-colors">${p.title}</h3>
-            <span class="text-xs md:text-sm font-bold px-2 py-1 md:px-3 md:py-1.5 rounded-lg ${badgeBg} whitespace-nowrap shadow-sm">${p.badge}</span>
+          <div class="flex justify-between items-start mb-5 gap-3">
+            <h3 class="text-lg md:text-xl font-extrabold text-gray-900 leading-tight group-hover:text-nyjBlue transition-colors">${p.title}</h3>
+            <span class="text-sm font-bold px-3 py-1.5 rounded-lg ${badgeBg} whitespace-nowrap shadow-sm">${p.badge}</span>
           </div>
-          <p class="text-sm md:text-base text-gray-800 font-bold mb-6 md:mb-8 leading-relaxed line-clamp-3">${p.desc}</p>
+          <p class="text-base text-gray-800 font-bold mb-8 leading-relaxed line-clamp-3">${p.desc}</p>
         </div>
         <div>
-          <div class="text-xs md:text-sm text-gray-800 font-bold mb-4 md:mb-5 bg-white/80 p-2 md:p-3 rounded-xl border border-gray-200 shadow-sm">
+          <div class="text-sm text-gray-800 font-bold mb-5 bg-white/80 p-3 rounded-xl border border-gray-200 shadow-sm">
             <span class="font-extrabold text-gray-900">수행기관:</span> ${p.finance.agency}
           </div>
-          <button class="w-full py-2.5 md:py-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-nyjBlue font-extrabold rounded-xl md:rounded-2xl text-sm md:text-base transition-all border border-blue-200 shadow-md focus:ring-4 focus:ring-blue-100" onclick="openProjectDetail('${p.id}')">
+          <button class="w-full py-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-nyjBlue font-extrabold rounded-2xl text-base transition-all border border-blue-200 shadow-md focus:ring-4 focus:ring-blue-100" onclick="openProjectDetail('${p.id}')">
             상세내용 및 문서 관리 &rarr;
           </button>
         </div>
@@ -209,7 +220,7 @@ function renderDashboardCards() {
     `;
   }).join('');
   const cnt = document.getElementById('searchResultCount');
-  if(cnt) cnt.innerText = `총 ${PROJECTS_DATA.length}개 사업 검색됨`;
+  if(cnt) cnt.innerText = `총 ${PROJECTS_DATA.length}개 사업`;
 }
 
 // SHA-256 해시 함수
@@ -248,10 +259,11 @@ function switchView(viewId) {
       el.classList.remove('active');
   });
   
-  document.querySelectorAll('.nav-item-active').forEach(el => {
-      if(el.id === 'nav-dashboard') {
+  ['nav-dashboard', 'nav-industry', 'nav-grievance'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
           el.classList.remove('nav-item-active');
-          el.classList.add('text-gray-900');
+          if (id === 'nav-' + viewId) el.classList.add('nav-item-active');
       }
   });
 
@@ -264,6 +276,7 @@ function switchView(viewId) {
   const meta = {
     'dashboard': { title: '2026 기업 지원시책 대시보드', desc: '기술지원·자금지원·판로개척·기업환경개선 종합 현황 분석' },
     'grievance': { title: '기업애로사항 접수·관리', desc: '관내 기업체 현장 애로사항 목록 및 통계를 조회합니다.' },
+    'industry': { title: '남양주시 산업 구조·기업 현황', desc: '기업·고용 41개월 및 공장등록 6개 반기 데이터 기반 종합 분석' },
     'project-detail': { title: '사업 상세정보', desc: '해당 시책의 세부 추진계획 및 관련 문서를 관리합니다.' }
   };
 
@@ -274,12 +287,8 @@ function switchView(viewId) {
     if(descEl) descEl.innerText = meta[viewId].desc;
   }
   
-  if (viewId === 'dashboard') {
-    const dNav = document.getElementById('nav-dashboard');
-    if(dNav) {
-        dNav.classList.add('nav-item-active');
-        dNav.classList.remove('text-gray-900');
-    }
+  if (viewId === 'industry') {
+    renderIndustryView();
   }
 }
 
@@ -299,7 +308,7 @@ function openProjectDetail(bizId) {
   setTxt('fin-total', fmt(proj.finance.total));
   
   const finCity = document.getElementById('fin-city');
-  if(finCity) finCity.innerHTML = proj.finance.fund > 0 ? `${fmt(proj.finance.city)} <br><span class="text-xs md:text-sm text-orange-600 font-extrabold mt-1 inline-block">(기금: ${fmt(proj.finance.fund)})</span>` : fmt(proj.finance.city);
+  if(finCity) finCity.innerHTML = proj.finance.fund > 0 ? `${fmt(proj.finance.city)} <br><span class="text-sm text-orange-600 font-extrabold mt-1 inline-block">(기금: ${fmt(proj.finance.fund)})</span>` : fmt(proj.finance.city);
   
   setTxt('fin-prov', fmt(proj.finance.prov));
   setTxt('fin-nat', fmt(proj.finance.nat));
@@ -309,12 +318,12 @@ function openProjectDetail(bizId) {
   const planEl = document.getElementById('detail-tab-plan');
   if(planEl) {
       planEl.innerHTML = proj.plans.map(pl => `
-        <div class="bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl border border-gray-200 shadow-md">
-          <div class="flex justify-between items-start mb-3 md:mb-4 gap-3">
-            <span class="font-extrabold text-nyjBlue text-sm md:text-base">${pl.title}</span>
-            <span class="text-xs md:text-sm font-bold bg-green-100 text-green-800 border border-green-200 px-2.5 py-1 md:px-3 md:py-1.5 rounded-lg whitespace-nowrap">${pl.budget}</span>
+        <div class="bg-white p-6 rounded-3xl border border-gray-200 shadow-md">
+          <div class="flex justify-between items-start mb-4 gap-3">
+            <span class="font-extrabold text-nyjBlue text-base">${pl.title}</span>
+            <span class="text-sm font-bold bg-green-100 text-green-800 border border-green-200 px-3 py-1.5 rounded-lg whitespace-nowrap">${pl.budget}</span>
           </div>
-          <div class="text-xs md:text-base text-gray-800 font-bold leading-relaxed whitespace-pre-wrap">${pl.desc}</div>
+          <div class="text-sm md:text-base text-gray-800 font-bold leading-relaxed whitespace-pre-wrap">${pl.desc}</div>
         </div>
       `).join('');
   }
@@ -322,8 +331,8 @@ function openProjectDetail(bizId) {
   const histEl = document.getElementById('detail-history-custom');
   if(histEl) {
       histEl.innerHTML = `
-        <h4 class="text-sm md:text-base font-extrabold text-nyjBlue mb-3 md:mb-4 border-l-[4px] md:border-l-[5px] border-nyjSkyBlue pl-2 md:pl-3">신청방법 및 문의처 세부안내</h4>
-        <div class="space-y-2 md:space-y-3 text-sm md:text-base text-gray-800 font-bold bg-gray-50 p-4 md:p-5 rounded-xl md:rounded-2xl border border-gray-100">
+        <h4 class="text-base font-extrabold text-nyjBlue mb-4 border-l-[5px] border-nyjSkyBlue pl-3">신청방법 및 문의처 세부안내</h4>
+        <div class="space-y-3 text-base text-gray-800 font-bold bg-gray-50 p-5 rounded-2xl border border-gray-100">
             <p><b class="text-gray-900">지원 대상:</b> ${proj.target}</p>
             <p><b class="text-gray-900">신청 방법:</b> ${proj.applyInfo}</p>
             <p><b class="text-gray-900">문의 부서:</b> ${proj.contact}</p>
@@ -344,13 +353,13 @@ function switchDetailTab(type) {
   if(!btnPlan || !btnHist) return;
 
   if(isPlan) {
-      btnPlan.className = "flex-1 py-4 md:py-5 text-sm md:text-lg font-extrabold text-nyjBlue border-b-4 border-nyjBlue bg-white transition-colors";
-      btnHist.className = "flex-1 py-4 md:py-5 text-sm md:text-lg font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-gray-50 transition-colors";
+      btnPlan.className = "flex-1 py-5 text-base md:text-lg font-extrabold text-nyjBlue border-b-4 border-nyjBlue bg-white transition-colors";
+      btnHist.className = "flex-1 py-5 text-base md:text-lg font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-gray-50 transition-colors";
       document.getElementById('detail-tab-plan').classList.remove('hidden');
       document.getElementById('detail-tab-history').classList.add('hidden');
   } else {
-      btnHist.className = "flex-1 py-4 md:py-5 text-sm md:text-lg font-extrabold text-nyjBlue border-b-4 border-nyjBlue bg-white transition-colors";
-      btnPlan.className = "flex-1 py-4 md:py-5 text-sm md:text-lg font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-gray-50 transition-colors";
+      btnHist.className = "flex-1 py-5 text-base md:text-lg font-extrabold text-nyjBlue border-b-4 border-nyjBlue bg-white transition-colors";
+      btnPlan.className = "flex-1 py-5 text-base md:text-lg font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-gray-50 transition-colors";
       document.getElementById('detail-tab-history').classList.remove('hidden');
       document.getElementById('detail-tab-plan').classList.add('hidden');
   }
@@ -371,20 +380,20 @@ function renderAttachmentRows(proj) {
     const safeFilename = encodeURIComponent(filename);
 
     return `
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-4 md:p-5 bg-white rounded-xl md:rounded-2xl border border-gray-200 shadow-sm gap-4 md:gap-5 hover:shadow-md transition-shadow">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-5 bg-white rounded-2xl border border-gray-200 shadow-sm gap-5 hover:shadow-md transition-shadow">
         <div>
-          <div class="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
-            <span class="text-[0.65rem] md:text-xs font-extrabold border px-2 py-1 md:px-3 rounded-lg shadow-sm ${cat.badge}">${cat.name}</span>
-            <span class="text-sm md:text-base font-extrabold text-gray-900">문서 연동 상태</span>
+          <div class="flex items-center gap-3 mb-2">
+            <span class="text-xs font-extrabold border px-3 py-1 rounded-lg shadow-sm ${cat.badge}">${cat.name}</span>
+            <span class="text-base font-extrabold text-gray-900">문서 연동 상태</span>
           </div>
-          <div class="text-xs md:text-sm font-bold text-gray-800 mt-1 md:mt-0">
+          <div class="text-sm font-bold text-gray-800">
             ${isRegistered 
               ? `<span class="text-green-700 font-black mr-2 bg-green-50 px-2 py-1 rounded-md border border-green-100">✓ 등록됨</span> <span class="text-gray-700">${filename}</span>` 
               : `<span class="text-gray-500 italic bg-gray-50 px-2 py-1 rounded-md">미등록 (data.xlsx에 파일명 입력 필요)</span>`}
           </div>
         </div>
-        <button class="w-full md:w-auto px-5 py-3 md:px-6 md:py-3.5 text-xs md:text-sm font-extrabold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm ${isRegistered ? 'bg-nyjBlue text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-200' : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'}" ${isRegistered ? `onclick="window.open('./${safeFilename}', '_blank')"` : 'disabled'}>
-          <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        <button class="w-full md:w-auto px-6 py-3.5 text-sm font-extrabold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm ${isRegistered ? 'bg-nyjBlue text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-200' : 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'}" ${isRegistered ? `onclick="window.open('./${safeFilename}', '_blank')"` : 'disabled'}>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
           ${isRegistered ? '서버에서 다운로드' : '다운로드 불가'}
         </button>
       </div>
@@ -403,7 +412,7 @@ function filterDashboard() {
     if (match) count++;
   });
   const cntEl = document.getElementById('searchResultCount');
-  if(cntEl) cntEl.innerText = `검색 결과: ${count}건`;
+  if(cntEl) cntEl.innerText = `총 ${count}개 검색됨`;
 }
 
 function updateRegionSelect() {
@@ -425,7 +434,7 @@ function renderGrievanceTables(dataList) {
   tbody.innerHTML = '';
 
   if (!dataList || dataList.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" class="text-center p-6 md:p-10 text-gray-500 font-extrabold text-base md:text-lg bg-white">데이터가 없습니다.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center p-10 text-gray-500 font-extrabold text-lg bg-white">데이터가 없습니다.</td></tr>`;
     return;
   }
 
@@ -440,16 +449,16 @@ function renderGrievanceTables(dataList) {
   });
 
   regionBox.innerHTML = Object.entries(regionCounts).map(([reg, count]) => `
-    <div class="bg-white border-2 border-gray-100 p-3 md:p-4 rounded-xl md:rounded-2xl text-center shadow-sm hover:border-nyjGreen transition-colors">
-      <div class="text-xs md:text-sm font-extrabold text-gray-600 mb-1 md:mb-2">${reg}</div>
-      <div class="text-xl md:text-2xl font-black text-nyjGreen">${count}건</div>
+    <div class="bg-white border-2 border-gray-100 p-4 rounded-2xl text-center shadow-sm hover:border-nyjGreen transition-colors">
+      <div class="text-sm font-extrabold text-gray-600 mb-2">${reg}</div>
+      <div class="text-2xl font-black text-nyjGreen">${count}건</div>
     </div>
   `).join('');
 
   summaryBox.innerHTML = Object.entries(statusCounts).map(([status, count]) => `
-    <div class="bg-white border-2 border-gray-100 p-3 md:p-4 rounded-xl md:rounded-2xl text-center shadow-sm hover:border-nyjBlue transition-colors">
-      <div class="text-xs md:text-sm font-extrabold text-gray-600 mb-1 md:mb-2">${status}</div>
-      <div class="text-xl md:text-2xl font-black text-nyjBlue">${count}건</div>
+    <div class="bg-white border-2 border-gray-100 p-4 rounded-2xl text-center shadow-sm hover:border-nyjBlue transition-colors">
+      <div class="text-sm font-extrabold text-gray-600 mb-2">${status}</div>
+      <div class="text-2xl font-black text-nyjBlue">${count}건</div>
     </div>
   `).join('');
 
@@ -462,18 +471,18 @@ function renderGrievanceTables(dataList) {
     else if (item.rawStatus.includes('완료')) badgeStyle = 'bg-blue-100 text-blue-800 border-blue-300';
 
     tbody.innerHTML += `
-      <tr class="hover:bg-blue-50/50 transition-colors bg-white group border-b-2 border-gray-100">
-        <td class="p-3 md:p-4 text-center font-extrabold text-gray-500 whitespace-nowrap">${idx + 1}</td>
-        <td class="p-3 md:p-4 font-black text-gray-900 whitespace-nowrap">${item.corpName}</td>
-        <td class="p-3 md:p-4 font-bold text-gray-700 whitespace-nowrap">${item.location}</td>
-        <td class="p-3 md:p-4"><span class="text-[0.65rem] md:text-xs px-2 md:px-2.5 py-1 md:py-1.5 bg-gray-200 border border-gray-300 rounded-lg font-extrabold text-gray-800 whitespace-nowrap shadow-sm">${item.region}</span></td>
-        <td class="p-3 md:p-4 font-bold text-gray-700 whitespace-nowrap">${item.field}</td>
-        <td class="p-3 md:p-4 font-bold text-gray-800 leading-loose min-w-[200px]">${item.grievanceContent}</td>
-        <td class="p-3 md:p-4 font-bold text-gray-800 leading-loose border-l-2 border-gray-100 min-w-[250px]">
+      <tr class="hover:bg-blue-50/50 transition-colors bg-white group">
+        <td class="p-4 text-center font-extrabold text-gray-500">${idx + 1}</td>
+        <td class="p-4 font-black text-gray-900">${item.corpName}</td>
+        <td class="p-4 font-bold text-gray-700">${item.location}</td>
+        <td class="p-4"><span class="text-xs px-2.5 py-1.5 bg-gray-200 border border-gray-300 rounded-lg font-extrabold text-gray-800 whitespace-nowrap shadow-sm">${item.region}</span></td>
+        <td class="p-4 font-bold text-gray-700 whitespace-nowrap">${item.field}</td>
+        <td class="p-4 font-bold text-gray-800 leading-loose">${item.grievanceContent}</td>
+        <td class="p-4 font-bold text-gray-800 leading-loose border-l-2 border-gray-100">
             <div class="bg-blue-50/50 p-2 rounded-lg mb-2 border border-blue-100"><span class="font-black text-nyjSkyBlue mr-2">상담:</span>${item.consultContent}</div>
             <div class="bg-indigo-50/50 p-2 rounded-lg border border-indigo-100"><span class="font-black text-nyjBlue mr-2">처리:</span>${item.processContent}</div>
         </td>
-        <td class="p-3 md:p-4 text-center"><span class="text-xs md:text-sm font-extrabold px-2.5 md:px-3 py-1 md:py-1.5 rounded-xl border-2 whitespace-nowrap shadow-sm ${badgeStyle}">${item.rawStatus}</span></td>
+        <td class="p-4 text-center"><span class="text-sm font-extrabold px-3 py-1.5 rounded-xl border-2 whitespace-nowrap shadow-sm ${badgeStyle}">${item.rawStatus}</span></td>
       </tr>
     `;
   });
@@ -505,8 +514,10 @@ function handleExcelUpload(event) {
           rawStatus: (cols[8] || '검토').toString().trim()
         });
       });
+      parseIndustrySheets(workbook);
       updateRegionSelect();
       renderGrievanceTables(GRIEVANCE_DATA);
+      renderIndustryView();
       alert('업로드된 엑셀 파일로 현황판이 성공적으로 갱신되었습니다.');
     } catch (err) { alert('엑셀 처리 중 오류가 발생했습니다.'); }
   };
@@ -560,7 +571,7 @@ function initCharts() {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 14, padding: 18, font: { size: window.innerWidth > 768 ? 14 : 12, weight: '900' }, color: '#1e293b' } },
+            legend: { position: 'bottom', labels: { boxWidth: 14, padding: 18, font: { size: 14, weight: '900' }, color: '#1e293b' } },
             tooltip: {
               backgroundColor: 'rgba(255,255,255,0.95)',
               titleColor: '#0f172a',
@@ -600,11 +611,11 @@ function initCharts() {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            x: { stacked: true, grid: { display: false }, ticks: { font: { size: window.innerWidth > 768 ? 14 : 11, weight: 'bold' }, color: '#1e293b' } },
-            y: { stacked: true, grid: { color: 'rgba(0,0,0,0.1)' }, ticks: { font: { size: window.innerWidth > 768 ? 14 : 11, weight: 'bold' }, color: '#1e293b', callback: v => v + '억' } }
+            x: { stacked: true, grid: { display: false }, ticks: { font: { size: 14, weight: 'bold' }, color: '#1e293b' } },
+            y: { stacked: true, grid: { color: 'rgba(0,0,0,0.1)' }, ticks: { font: { size: 14, weight: 'bold' }, color: '#1e293b', callback: v => v + '억' } }
           },
           plugins: {
-            legend: { position: 'top', labels: { boxWidth: 14, font: { size: window.innerWidth > 768 ? 14 : 12, weight: '900' }, color: '#1e293b' } },
+            legend: { position: 'top', labels: { boxWidth: 14, font: { size: 14, weight: '900' }, color: '#1e293b' } },
             tooltip: {
                 backgroundColor: 'rgba(255,255,255,0.95)',
                 titleColor: '#0f172a',
@@ -619,4 +630,340 @@ function initCharts() {
         }
       });
   }
+}
+// 앱 초기화 로직 제거됨. 인증 완료 후 fetchExcelData()가 호출됩니다.
+
+
+function parseIndustrySheets(workbook) {
+  if (workbook.SheetNames.includes('산업_요약KPI')) {
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets['산업_요약KPI'], { header: 1 });
+    INDUSTRY_DATA.kpi = rows.slice(1).filter(r => r[0]).map(r => ({
+      name: r[0] || '',
+      value: r[1] !== undefined ? r[1] : '-',
+      unit: r[2] || '',
+      delta: r[3] || '',
+      date: r[4] || '',
+      desc: r[5] || ''
+    }));
+  }
+  if (workbook.SheetNames.includes('산업_시계열')) {
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets['산업_시계열'], { header: 1 });
+    INDUSTRY_DATA.timeseries = rows.slice(1).filter(r => r[0]).map(r => ({
+      period: String(r[0]),
+      corps: Number(r[1]) || 0,
+      workers: Number(r[2]) || 0,
+      nyjWorkers: Number(r[3]) || 0,
+      otherWorkers: Number(r[4]) || 0,
+      otherRatio: Number(r[5]) || 0
+    }));
+  }
+  if (workbook.SheetNames.includes('산업_읍면동')) {
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets['산업_읍면동'], { header: 1 });
+    INDUSTRY_DATA.regions = rows.slice(1).filter(r => r[0]).map(r => ({
+      name: String(r[0]),
+      활동기업수: Number(r[1]) || 0,
+      법인수: Number(r[2]) || 0,
+      개인사업자수: Number(r[3]) || 0,
+      종사자수: Number(r[4]) || 0,
+      남양주근무비중: Number(r[5]) || 0,
+      타시군근무비중: Number(r[6]) || 0,
+      신설집중도: Number(r[7]) || 0,
+      공장수: Number(r[8]) || 0,
+      공장증감: Number(r[9]) || 0,
+      종업원증감: Number(r[10]) || 0
+    }));
+  }
+  if (workbook.SheetNames.includes('산업_핵심업종')) {
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets['산업_핵심업종'], { header: 1 });
+    INDUSTRY_DATA.industries = rows.slice(1).filter(r => r[0]).map(r => ({
+      name: String(r[0]),
+      corps: Number(r[1]) || 0,
+      corpDelta: Number(r[2]) || 0,
+      workers: Number(r[3]) || 0,
+      workerDelta: Number(r[4]) || 0,
+      topRegion: r[5] || '-'
+    }));
+  }
+  if (workbook.SheetNames.includes('산업_시군비교')) {
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets['산업_시군비교'], { header: 1 });
+    INDUSTRY_DATA.cities = rows.slice(1).filter(r => r[0]).map(r => ({
+      name: String(r[0]),
+      corps: Number(r[1]) || 0,
+      growth: Number(r[2]) || 0,
+      mfgRatio: Number(r[3]) || 0,
+      newRate: Number(r[4]) || 0,
+      closeRate: Number(r[5]) || 0,
+      avgEmp: Number(r[6]) || 0,
+      techCorps: Number(r[7]) || 0
+    }));
+  }
+}
+
+function switchIndustryTab(tabName) {
+  const tabs = ['timeseries', 'regions', 'comparison', 'policy'];
+  tabs.forEach(t => {
+    const panel = document.getElementById('ind-tab-' + t);
+    const btn = document.getElementById('ind-tab-btn-' + t);
+    if (!panel || !btn) return;
+    if (t === tabName) {
+      panel.classList.remove('hidden');
+      btn.className = "flex-1 min-w-[140px] py-4 px-3 text-sm md:text-base font-extrabold text-nyjBlue border-b-4 border-nyjBlue bg-white transition-colors";
+    } else {
+      panel.classList.add('hidden');
+      btn.className = "flex-1 min-w-[140px] py-4 px-3 text-sm md:text-base font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-white/90 transition-colors";
+    }
+  });
+  if (tabName === 'timeseries') renderIndustryTimeseriesCharts();
+  if (tabName === 'regions') renderIndustryRegionChart();
+  if (tabName === 'comparison') renderIndustryComparisonCharts();
+}
+
+function renderIndustryView() {
+  renderIndustryKPI();
+  renderIndustryRegionTable();
+  renderIndustryCityTable();
+  renderIndustryTimeseriesCharts();
+  renderIndustryRegionChart();
+  renderIndustryComparisonCharts();
+}
+
+function renderIndustryKPI() {
+  const grid = document.getElementById('industry-kpi-grid');
+  if (!grid) return;
+  if (!INDUSTRY_DATA.kpi.length) {
+    grid.innerHTML = '<div class="col-span-full bg-white p-8 rounded-3xl text-center text-gray-500 font-bold">data.xlsx에 산업_요약KPI 시트가 없습니다.</div>';
+    return;
+  }
+  const borders = ['border-t-nyjBlue', 'border-t-nyjSkyBlue', 'border-t-nyjGreen', 'border-t-nyjOrange', 'border-t-purple-600', 'border-t-red-500'];
+  grid.innerHTML = INDUSTRY_DATA.kpi.map((item, idx) => {
+    const numStr = typeof item.value === 'number' ? item.value.toLocaleString() : item.value;
+    return `
+      <div class="glass-card rounded-3xl p-6 border-t-8 ${borders[idx % borders.length]} shadow-md">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm font-extrabold text-gray-600">${item.name}</span>
+          <span class="text-xs font-bold bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg">${item.date}</span>
+        </div>
+        <div class="text-3xl font-black text-gray-900 tracking-tight my-2">
+          ${numStr}<span class="text-lg font-bold text-gray-600 ml-1">${item.unit}</span>
+        </div>
+        <div class="text-sm font-extrabold text-nyjBlue bg-blue-50 inline-block px-3 py-1 rounded-lg mb-2">${item.delta}</div>
+        <p class="text-xs text-gray-600 font-bold leading-relaxed">${item.desc}</p>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderIndustryTimeseriesCharts() {
+  const ts = INDUSTRY_DATA.timeseries;
+  if (!ts.length) return;
+
+  if (indCharts.ts) indCharts.ts.destroy();
+  const ctx1 = document.getElementById('indTimeseriesChart');
+  if (ctx1) {
+    indCharts.ts = new Chart(ctx1.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: ts.map(d => d.period),
+        datasets: [
+          {
+            label: '활동기업 수 (개)',
+            data: ts.map(d => d.corps),
+            borderColor: '#002978',
+            backgroundColor: 'rgba(0, 41, 120, 0.1)',
+            borderWidth: 3,
+            tension: 0.3,
+            yAxisID: 'y'
+          },
+          {
+            label: '종사자 수 (명)',
+            data: ts.map(d => d.workers),
+            borderColor: '#00a760',
+            backgroundColor: 'rgba(0, 167, 96, 0.1)',
+            borderWidth: 3,
+            tension: 0.3,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          y: { type: 'linear', position: 'left', title: { display: true, text: '활동기업 수(개)', font: { weight: 'bold' } } },
+          y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: '종사자 수(명)', font: { weight: 'bold' } } }
+        }
+      }
+    });
+  }
+
+  if (indCharts.commute) indCharts.commute.destroy();
+  const ctx2 = document.getElementById('indCommuteChart');
+  if (ctx2) {
+    indCharts.commute = new Chart(ctx2.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ts.map(d => d.period),
+        datasets: [
+          { label: '남양주 거주 종사자', data: ts.map(d => d.nyjWorkers), backgroundColor: '#002978', stack: 's1' },
+          { label: '타 시군 거주 종사자', data: ts.map(d => d.otherWorkers), backgroundColor: '#009fe3', stack: 's1' },
+          { label: '타 시군 거주 비중(%)', data: ts.map(d => d.otherRatio), type: 'line', borderColor: '#ef7d00', borderWidth: 3, yAxisID: 'y1' }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { stacked: true, title: { display: true, text: '인원(명)', font: { weight: 'bold' } } },
+          y1: { position: 'right', min: 40, max: 50, grid: { drawOnChartArea: false }, title: { display: true, text: '비중(%)', font: { weight: 'bold' } } }
+        }
+      }
+    });
+  }
+}
+
+function renderIndustryRegionChart() {
+  const select = document.getElementById('indRegionMetricSelect');
+  const ctx = document.getElementById('indRegionChart');
+  if (!select || !ctx || !INDUSTRY_DATA.regions.length) return;
+
+  const metric = select.value;
+  const labelMap = {
+    '활동기업수': '활동기업 수 (개)',
+    '종사자수': '종사자 수 (명)',
+    '남양주근무비중': '남양주 근무 비중 (%)',
+    '신설집중도': '법인 신설 집중도 (평균=1.0)',
+    '공장증감': '등록공장 증감 (개)'
+  };
+
+  const sorted = [...INDUSTRY_DATA.regions].sort((a, b) => b[metric] - a[metric]);
+  const colors = sorted.map(r => {
+    if (metric === '공장증감') return r[metric] >= 0 ? '#002978' : '#ef7d00';
+    if (metric === '신설집중도') return r[metric] >= 1.0 ? '#002978' : '#94a3b8';
+    return '#009fe3';
+  });
+
+  if (indCharts.region) indCharts.region.destroy();
+  indCharts.region = new Chart(ctx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(r => r.name),
+      datasets: [{
+        label: labelMap[metric] || metric,
+        data: sorted.map(r => r[metric]),
+        backgroundColor: colors,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,0.06)' } },
+        y: { grid: { display: false }, ticks: { font: { size: 13, weight: 'bold' } } }
+      }
+    }
+  });
+}
+
+function renderIndustryRegionTable() {
+  const tbody = document.getElementById('ind-region-tbody');
+  if (!tbody || !INDUSTRY_DATA.regions.length) return;
+  tbody.innerHTML = INDUSTRY_DATA.regions.map(r => {
+    const fColor = r.공장증감 > 0 ? 'text-blue-700 font-extrabold' : r.공장증감 < 0 ? 'text-red-600 font-extrabold' : 'text-gray-500';
+    const eColor = r.종업원증감 > 0 ? 'text-blue-700 font-extrabold' : r.종업원증감 < 0 ? 'text-red-600 font-extrabold' : 'text-gray-500';
+    return `
+      <tr class="hover:bg-blue-50/50 transition-colors">
+        <td class="p-3 text-center font-extrabold text-gray-900">${r.name}</td>
+        <td class="p-3 font-bold">${r.활동기업수.toLocaleString()}</td>
+        <td class="p-3 font-bold">${r.법인수.toLocaleString()}</td>
+        <td class="p-3 font-bold">${r.종사자수.toLocaleString()}</td>
+        <td class="p-3 font-bold">${r.남양주근무비중.toFixed(1)}%</td>
+        <td class="p-3 font-bold ${r.신설집중도 >= 1.0 ? 'text-nyjBlue' : 'text-gray-600'}">${r.신설집중도.toFixed(2)}</td>
+        <td class="p-3 font-bold">${r.공장수.toLocaleString()}</td>
+        <td class="p-3 ${fColor}">${r.공장증감 > 0 ? '+' : ''}${r.공장증감}</td>
+        <td class="p-3 ${eColor}">${r.종업원증감 > 0 ? '+' : ''}${r.종업원증감.toLocaleString()}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderIndustryComparisonCharts() {
+  if (INDUSTRY_DATA.industries.length) {
+    if (indCharts.core) indCharts.core.destroy();
+    const ctx1 = document.getElementById('indCoreIndustryChart');
+    if (ctx1) {
+      indCharts.core = new Chart(ctx1.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: INDUSTRY_DATA.industries.map(d => d.name),
+          datasets: [
+            { label: '최근 1년 기업 증감(개)', data: INDUSTRY_DATA.industries.map(d => d.corpDelta), backgroundColor: '#002978', borderRadius: 6 },
+            { label: '최근 1년 종사자 증감(명)', data: INDUSTRY_DATA.industries.map(d => d.workerDelta), backgroundColor: '#00a760', borderRadius: 6 }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+  }
+
+  if (INDUSTRY_DATA.cities.length) {
+    if (indCharts.city) indCharts.city.destroy();
+    const ctx2 = document.getElementById('indCityCompChart');
+    if (ctx2) {
+      indCharts.city = new Chart(ctx2.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: INDUSTRY_DATA.cities.map(d => d.name),
+          datasets: [
+            {
+              label: '활동기업 수 (개)',
+              data: INDUSTRY_DATA.cities.map(d => d.corps),
+              backgroundColor: INDUSTRY_DATA.cities.map(d => d.name === '남양주시' ? '#002978' : '#cbd5e1'),
+              borderRadius: 6,
+              yAxisID: 'y'
+            },
+            {
+              label: '제조업 비중 (%)',
+              data: INDUSTRY_DATA.cities.map(d => d.mfgRatio),
+              type: 'line',
+              borderColor: '#ef7d00',
+              borderWidth: 3,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { position: 'left', title: { display: true, text: '활동기업 수(개)' } },
+            y1: { position: 'right', min: 0, max: 35, grid: { drawOnChartArea: false }, title: { display: true, text: '제조업 비중(%)' } }
+          }
+        }
+      });
+    }
+  }
+}
+
+function renderIndustryCityTable() {
+  const tbody = document.getElementById('ind-city-tbody');
+  if (!tbody || !INDUSTRY_DATA.cities.length) return;
+  tbody.innerHTML = INDUSTRY_DATA.cities.map(c => {
+    const isNyj = c.name === '남양주시';
+    return `
+      <tr class="${isNyj ? 'bg-blue-50/80 font-extrabold' : 'hover:bg-gray-50'}">
+        <td class="p-3 text-center font-extrabold ${isNyj ? 'text-nyjBlue' : 'text-gray-900'}">${c.name}</td>
+        <td class="p-3 font-bold">${c.corps.toLocaleString()}</td>
+        <td class="p-3 font-bold">+${c.growth.toFixed(1)}%</td>
+        <td class="p-3 font-bold">${c.mfgRatio.toFixed(1)}%</td>
+        <td class="p-3 font-bold">${c.newRate.toFixed(1)}%</td>
+        <td class="p-3 font-bold">${c.closeRate.toFixed(1)}%</td>
+        <td class="p-3 font-bold">${c.avgEmp.toFixed(1)}명</td>
+        <td class="p-3 font-bold">${c.techCorps.toLocaleString()}</td>
+      </tr>
+    `;
+  }).join('');
 }
