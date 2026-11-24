@@ -797,7 +797,7 @@ function renderIndustryTimeseriesCharts() {
     });
   }
 
-  if (indCharts.commute) indCharts.commute.destroy();
+if (indCharts.commute) indCharts.commute.destroy();
   const ctx2 = document.getElementById('indCommuteChart');
   if (ctx2) {
     indCharts.commute = new Chart(ctx2.getContext('2d'), {
@@ -805,22 +805,54 @@ function renderIndustryTimeseriesCharts() {
       data: {
         labels: ts.map(d => d.period),
         datasets: [
-          { label: '남양주 거주 종사자', data: ts.map(d => d.nyjWorkers), backgroundColor: '#002978', stack: 's1' },
-          { label: '타 시군 거주 종사자', data: ts.map(d => d.otherWorkers), backgroundColor: '#009fe3', stack: 's1' },
-          { label: '타 시군 거주 비중(%)', data: ts.map(d => d.otherRatio), type: 'line', borderColor: '#ef7d00', borderWidth: 3, yAxisID: 'y1' }
+          {
+            label: '남양주 거주 종사자',
+            data: ts.map(d => d.nyjWorkers),
+            backgroundColor: '#002978',
+            borderRadius: 6
+          },
+          {
+            label: '타 시군 거주 종사자',
+            data: ts.map(d => d.otherWorkers),
+            backgroundColor: '#009fe3',
+            borderRadius: 6
+          },
+          {
+            label: '타 시군 거주 비중(%)',
+            data: ts.map(d => d.otherRatio),
+            type: 'line',
+            borderColor: '#ef7d00',
+            backgroundColor: '#ef7d00',
+            borderWidth: 3,
+            pointRadius: 5,
+            tension: 0.2,
+            yAxisID: 'y1'
+          }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
         scales: {
-          y: { stacked: true, title: { display: true, text: '인원(명)', font: { weight: 'bold' } } },
-          y1: { position: 'right', min: 40, max: 50, grid: { drawOnChartArea: false }, title: { display: true, text: '비중(%)', font: { weight: 'bold' } } }
+          y: {
+            min: 46000,   // 막대 바닥값을 46,000명으로 올려 변동폭 강조
+            max: 62000,   // 최대값을 62,000명으로 제한
+            title: { display: true, text: '인원(명)', font: { weight: 'bold' } },
+            ticks: { callback: v => v.toLocaleString() }
+          },
+          y1: {
+            position: 'right',
+            min: 43.5,    // 비중 축을 43.5% ~ 45.2%로 좁혀 상승세 강조
+            max: 45.2,
+            grid: { drawOnChartArea: false },
+            title: { display: true, text: '비중(%)', font: { weight: 'bold' } },
+            ticks: { callback: v => v.toFixed(1) + '%' }
+          }
         }
       }
     });
   }
-}
 
 function renderIndustryRegionChart() {
   const select = document.getElementById('indRegionMetricSelect');
