@@ -797,7 +797,7 @@ function renderIndustryTimeseriesCharts() {
     });
   }
 
-if (indCharts.commute) indCharts.commute.destroy();
+  if (indCharts.commute) indCharts.commute.destroy();
   const ctx2 = document.getElementById('indCommuteChart');
   if (ctx2) {
     indCharts.commute = new Chart(ctx2.getContext('2d'), {
@@ -836,14 +836,14 @@ if (indCharts.commute) indCharts.commute.destroy();
         interaction: { mode: 'index', intersect: false },
         scales: {
           y: {
-            min: 46000,   // 막대 바닥값을 46,000명으로 올려 변동폭 강조
-            max: 62000,   // 최대값을 62,000명으로 제한
+            min: 46000,
+            max: 62000,
             title: { display: true, text: '인원(명)', font: { weight: 'bold' } },
             ticks: { callback: v => v.toLocaleString() }
           },
           y1: {
             position: 'right',
-            min: 43.5,    // 비중 축을 43.5% ~ 45.2%로 좁혀 상승세 강조
+            min: 43.5,
             max: 45.2,
             grid: { drawOnChartArea: false },
             title: { display: true, text: '비중(%)', font: { weight: 'bold' } },
@@ -853,6 +853,7 @@ if (indCharts.commute) indCharts.commute.destroy();
       }
     });
   }
+}
 
 function renderIndustryRegionChart() {
   const select = document.getElementById('indRegionMetricSelect');
