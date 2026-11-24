@@ -423,6 +423,20 @@ function filterDashboard() {
   if(cntEl) cntEl.innerText = `총 ${count}개 검색됨`;
 }
 
+function syncSidebarSearch(val) {
+  const dashInput = document.getElementById('dashboardSearch');
+  if (dashInput) dashInput.value = val;
+  filterDashboard();
+
+  const q = val.toLowerCase().trim();
+  PROJECTS_DATA.forEach(p => {
+    const navEl = document.getElementById('nav-' + p.id);
+    if (!navEl) return;
+    const text = (p.title + ' ' + p.shortTitle + ' ' + p.desc + ' ' + p.catName).toLowerCase();
+    navEl.style.display = (!q || text.includes(q)) ? 'flex' : 'none';
+  });
+}
+
 function updateRegionSelect() {
   const select = document.getElementById('regionFilter');
   if(!select) return;
