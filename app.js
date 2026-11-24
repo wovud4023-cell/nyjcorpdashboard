@@ -200,13 +200,13 @@ function renderDashboardCards() {
     let badgeBg = p.catId === 2 ? 'bg-purple-100 text-purple-800 border border-purple-200' : p.catId === 3 ? 'bg-green-100 text-green-800 border border-green-200' : p.catId === 4 ? 'bg-orange-100 text-orange-800 border border-orange-200' : 'bg-blue-100 text-blue-800 border border-blue-200';
 
     return `
-      <div class="glass-card rounded-3xl p-7 flex flex-col justify-between group border-t-8 ${borderColor} searchable-card shadow-md hover:shadow-xl" data-category="${p.catName}">
+      <div class="glass-card rounded-2xl md:rounded-3xl p-4 md:p-7 flex flex-col justify-between group border-t-[6px] md:border-t-8 ${borderColor} searchable-card shadow-md hover:shadow-xl" data-category="${p.catName}">
         <div>
           <div class="flex justify-between items-start mb-5 gap-3">
             <h3 class="text-lg md:text-xl font-extrabold text-gray-900 leading-tight group-hover:text-nyjBlue transition-colors">${p.title}</h3>
             <span class="text-sm font-bold px-3 py-1.5 rounded-lg ${badgeBg} whitespace-nowrap shadow-sm">${p.badge}</span>
           </div>
-          <p class="text-base text-gray-800 font-bold mb-8 leading-relaxed line-clamp-3">${p.desc}</p>
+          <p class="text-sm md:text-base text-gray-800 font-bold mb-5 md:mb-8 leading-relaxed line-clamp-3">${p.desc}</p>
         </div>
         <div>
           <div class="text-sm text-gray-800 font-bold mb-5 bg-white/80 p-3 rounded-xl border border-gray-200 shadow-sm">
@@ -746,16 +746,16 @@ function renderIndustryKPI() {
   grid.innerHTML = INDUSTRY_DATA.kpi.map((item, idx) => {
     const numStr = typeof item.value === 'number' ? item.value.toLocaleString() : item.value;
     return `
-      <div class="glass-card rounded-3xl p-6 border-t-8 ${borders[idx % borders.length]} shadow-md">
-        <div class="flex justify-between items-center mb-2">
-          <span class="text-sm font-extrabold text-gray-600">${item.name}</span>
-          <span class="text-xs font-bold bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg">${item.date}</span>
+      <div class="glass-card rounded-2xl md:rounded-3xl p-4 md:p-6 border-t-[6px] md:border-t-8 ${borders[idx % borders.length]} shadow-md">
+        <div class="flex justify-between items-center mb-1.5 md:mb-2">
+          <span class="text-xs md:text-sm font-extrabold text-gray-600">${item.name}</span>
+          <span class="text-[11px] md:text-xs font-bold bg-gray-100 text-gray-600 px-2 py-0.5 md:px-2.5 md:py-1 rounded-lg">${item.date}</span>
         </div>
-        <div class="text-3xl font-black text-gray-900 tracking-tight my-2">
-          ${numStr}<span class="text-lg font-bold text-gray-600 ml-1">${item.unit}</span>
+        <div class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight my-1.5 md:my-2">
+          ${numStr}<span class="text-sm md:text-lg font-bold text-gray-600 ml-1">${item.unit}</span>
         </div>
-        <div class="text-sm font-extrabold text-nyjBlue bg-blue-50 inline-block px-3 py-1 rounded-lg mb-2">${item.delta}</div>
-        <p class="text-xs text-gray-600 font-bold leading-relaxed">${item.desc}</p>
+        <div class="text-xs md:text-sm font-extrabold text-nyjBlue bg-blue-50 inline-block px-2.5 py-0.5 md:px-3 md:py-1 rounded-lg mb-1.5 md:mb-2">${item.delta}</div>
+        <p class="text-[11px] md:text-xs text-gray-600 font-bold leading-relaxed">${item.desc}</p>
       </div>
     `;
   }).join('');
