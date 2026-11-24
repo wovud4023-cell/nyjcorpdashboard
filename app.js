@@ -290,6 +290,14 @@ function switchView(viewId) {
   if (viewId === 'industry') {
     renderIndustryView();
   }
+  if (window.innerWidth <= 768) {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+      sidebar.classList.add('-translate-x-full');
+      if (overlay) overlay.classList.add('hidden');
+    }
+  }
 }
 
 function openProjectDetail(bizId) {
@@ -707,10 +715,10 @@ function switchIndustryTab(tabName) {
     if (!panel || !btn) return;
     if (t === tabName) {
       panel.classList.remove('hidden');
-      btn.className = "flex-1 min-w-[140px] py-4 px-3 text-sm md:text-base font-extrabold text-nyjBlue border-b-4 border-nyjBlue bg-white transition-colors";
+      btn.className = "md:flex-1 py-3.5 md:py-4 px-2 md:px-3 text-xs sm:text-sm md:text-base font-extrabold text-nyjBlue border-b-4 border-nyjBlue bg-white transition-colors";
     } else {
       panel.classList.add('hidden');
-      btn.className = "flex-1 min-w-[140px] py-4 px-3 text-sm md:text-base font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-white/90 transition-colors";
+      btn.className = "md:flex-1 py-3.5 md:py-4 px-2 md:px-3 text-xs sm:text-sm md:text-base font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-white/90 transition-colors";
     }
   });
   if (tabName === 'timeseries') renderIndustryTimeseriesCharts();
@@ -756,6 +764,7 @@ function renderIndustryKPI() {
 function renderIndustryTimeseriesCharts() {
   const ts = INDUSTRY_DATA.timeseries;
   if (!ts.length) return;
+  const isMobile = window.innerWidth < 640;
 
   if (indCharts.ts) indCharts.ts.destroy();
   const ctx1 = document.getElementById('indTimeseriesChart');
@@ -790,8 +799,8 @@ function renderIndustryTimeseriesCharts() {
         maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
         scales: {
-          y: { type: 'linear', position: 'left', title: { display: true, text: '활동기업 수(개)', font: { weight: 'bold' } } },
-          y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: '종사자 수(명)', font: { weight: 'bold' } } }
+          y: { type: 'linear', position: 'left', title: { display: !isMobile, text: '활동기업 수(개)', font: { weight: 'bold' } } },
+          y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: !isMobile, text: '종사자 수(명)', font: { weight: 'bold' } } }
         }
       }
     });
@@ -838,7 +847,7 @@ function renderIndustryTimeseriesCharts() {
           y: {
             min: 46000,
             max: 62000,
-            title: { display: true, text: '인원(명)', font: { weight: 'bold' } },
+            title: { display: !isMobile, text: '인원(명)', font: { weight: 'bold' } },
             ticks: { callback: v => v.toLocaleString() }
           },
           y1: {
@@ -846,7 +855,7 @@ function renderIndustryTimeseriesCharts() {
             min: 43.5,
             max: 45.2,
             grid: { drawOnChartArea: false },
-            title: { display: true, text: '비중(%)', font: { weight: 'bold' } },
+            title: { display: !isMobile, text: '비중(%)', font: { weight: 'bold' } },
             ticks: { callback: v => v.toFixed(1) + '%' }
           }
         }
@@ -909,7 +918,7 @@ function renderIndustryRegionTable() {
     const eColor = r.종업원증감 > 0 ? 'text-blue-700 font-extrabold' : r.종업원증감 < 0 ? 'text-red-600 font-extrabold' : 'text-gray-500';
     return `
       <tr class="hover:bg-blue-50/50 transition-colors">
-        <td class="p-3 text-center font-extrabold text-gray-900">${r.name}</td>
+        <td class="p-3 text-center font-extrabold text-gray-900 whitespace-nowrap sticky left-0 bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)]">${r.name}</td>
         <td class="p-3 font-bold">${r.활동기업수.toLocaleString()}</td>
         <td class="p-3 font-bold">${r.법인수.toLocaleString()}</td>
         <td class="p-3 font-bold">${r.종사자수.toLocaleString()}</td>
@@ -924,6 +933,7 @@ function renderIndustryRegionTable() {
 }
 
 function renderIndustryComparisonCharts() {
+  const isMobile = window.innerWidth < 640;
   if (INDUSTRY_DATA.industries.length) {
     if (indCharts.core) indCharts.core.destroy();
     const ctx1 = document.getElementById('indCoreIndustryChart');
@@ -972,8 +982,8 @@ function renderIndustryComparisonCharts() {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
-            y: { position: 'left', title: { display: true, text: '활동기업 수(개)' } },
-            y1: { position: 'right', min: 0, max: 35, grid: { drawOnChartArea: false }, title: { display: true, text: '제조업 비중(%)' } }
+            y: { position: 'left', title: { display: !isMobile, text: '활동기업 수(개)' } },
+            y1: { position: 'right', min: 0, max: 35, grid: { drawOnChartArea: false }, title: { display: !isMobile, text: '제조업 비중(%)' } }
           }
         }
       });
@@ -988,7 +998,7 @@ function renderIndustryCityTable() {
     const isNyj = c.name === '남양주시';
     return `
       <tr class="${isNyj ? 'bg-blue-50/80 font-extrabold' : 'hover:bg-gray-50'}">
-        <td class="p-3 text-center font-extrabold ${isNyj ? 'text-nyjBlue' : 'text-gray-900'}">${c.name}</td>
+        <td class="p-3 text-center font-extrabold whitespace-nowrap sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)] ${isNyj ? 'text-nyjBlue bg-blue-50' : 'text-gray-900 bg-white'}">${c.name}</td>
         <td class="p-3 font-bold">${c.corps.toLocaleString()}</td>
         <td class="p-3 font-bold">+${c.growth.toFixed(1)}%</td>
         <td class="p-3 font-bold">${c.mfgRatio.toFixed(1)}%</td>

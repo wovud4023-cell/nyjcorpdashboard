@@ -11,7 +11,7 @@
   <!-- SheetJS -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <!-- 로컬 app.js 연결 -->
-  <script src="app.js" defer></script>
+  <script src="app.js?v=4" defer></script>
   
   <script>
     tailwind.config = {
@@ -228,7 +228,7 @@
         </div>
         <div class="hidden lg:flex items-center gap-3 bg-white/80 px-5 py-2.5 rounded-full border border-gray-200 shadow-sm">
           <div class="w-3 h-3 rounded-full bg-nyjGreen animate-pulse"></div>
-          <span class="text-sm font-extrabold text-nyjBlue tracking-wide">지역경제과 기업SOS팀</span>
+          <span class="text-sm font-extrabold text-nyjBlue tracking-wide">기업지원과 기업SOS팀</span>
         </div>
       </header>
 
@@ -403,7 +403,7 @@
         <!-- 뷰 4: 산업구조 및 기업현황 분석 -->
         <div id="view-industry" class="view-panel space-y-8">
           <!-- 상단 컨트롤 바 -->
-          <div class="glass-card rounded-3xl p-6 flex flex-col lg:flex-row justify-between items-center gap-6 sticky top-0 z-10 shadow-md border border-white/80">
+          <div class="glass-card rounded-3xl p-4 md:p-6 flex flex-col lg:flex-row justify-between items-center gap-4 md:gap-6 md:sticky md:top-0 z-10 shadow-md border border-white/80">
             <div class="flex items-center gap-4">
               <span class="bg-blue-100 text-nyjBlue p-3 rounded-xl shadow-sm">
                 <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
@@ -424,31 +424,31 @@
 
           <!-- 세부 분석 탭 -->
           <div class="glass-card rounded-3xl overflow-hidden shadow-lg border border-white/80">
-            <div class="flex flex-wrap bg-white/70 border-b border-gray-300">
-              <button id="ind-tab-btn-timeseries" class="flex-1 min-w-[140px] py-4 px-3 text-sm md:text-base font-extrabold text-nyjBlue border-b-4 border-nyjBlue bg-white transition-colors" onclick="switchIndustryTab('timeseries')">📈 고용·시계열 추이</button>
-              <button id="ind-tab-btn-regions" class="flex-1 min-w-[140px] py-4 px-3 text-sm md:text-base font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-white/90 transition-colors" onclick="switchIndustryTab('regions')">🏘️ 읍면동별 현황</button>
-              <button id="ind-tab-btn-comparison" class="flex-1 min-w-[140px] py-4 px-3 text-sm md:text-base font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-white/90 transition-colors" onclick="switchIndustryTab('comparison')">🏭 핵심업종·시군비교</button>
-              <button id="ind-tab-btn-policy" class="flex-1 min-w-[140px] py-4 px-3 text-sm md:text-base font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-white/90 transition-colors" onclick="switchIndustryTab('policy')">💡 종합진단·정책방향</button>
+            <div class="grid grid-cols-2 md:flex bg-white/70 border-b border-gray-300">
+              <button id="ind-tab-btn-timeseries" class="md:flex-1 py-3.5 md:py-4 px-2 md:px-3 text-xs sm:text-sm md:text-base font-extrabold text-nyjBlue border-b-4 border-nyjBlue bg-white transition-colors" onclick="switchIndustryTab('timeseries')">📈 고용·시계열 추이</button>
+              <button id="ind-tab-btn-regions" class="md:flex-1 py-3.5 md:py-4 px-2 md:px-3 text-xs sm:text-sm md:text-base font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-white/90 transition-colors" onclick="switchIndustryTab('regions')">🏘️ 읍면동별 현황</button>
+              <button id="ind-tab-btn-comparison" class="md:flex-1 py-3.5 md:py-4 px-2 md:px-3 text-xs sm:text-sm md:text-base font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-white/90 transition-colors" onclick="switchIndustryTab('comparison')">🏭 핵심업종·시군비교</button>
+              <button id="ind-tab-btn-policy" class="md:flex-1 py-3.5 md:py-4 px-2 md:px-3 text-xs sm:text-sm md:text-base font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-white/90 transition-colors" onclick="switchIndustryTab('policy')">💡 종합진단·정책방향</button>
             </div>
 
-            <div class="p-6 md:p-8 bg-white/40">
+            <div class="p-4 md:p-8 bg-white/40">
               <!-- 탭 1: 시계열 추이 -->
               <div id="ind-tab-timeseries" class="space-y-8">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm">
+                  <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 shadow-sm">
                     <h4 class="text-base font-extrabold text-gray-900 mb-4">📊 활동기업 수 vs 종사자 수 추이 (2023.01 ~ 2026.05)</h4>
-                    <div class="h-80 relative"><canvas id="indTimeseriesChart"></canvas></div>
+                    <div class="h-64 sm:h-72 md:h-80 relative"><canvas id="indTimeseriesChart"></canvas></div>
                   </div>
-                  <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm">
+                  <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 shadow-sm">
                     <h4 class="text-base font-extrabold text-gray-900 mb-4">🚆 종사자 거주지 구성 및 타 시군 거주 비중(%)</h4>
-                    <div class="h-80 relative"><canvas id="indCommuteChart"></canvas></div>
+                    <div class="h-64 sm:h-72 md:h-80 relative"><canvas id="indCommuteChart"></canvas></div>
                   </div>
                 </div>
               </div>
 
               <!-- 탭 2: 읍면동별 현황 (지도 대체 자동화 차트 + 표) -->
               <div id="ind-tab-regions" class="hidden space-y-8">
-                <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm">
+                <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 shadow-sm">
                   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div>
                       <h4 class="text-base font-extrabold text-gray-900">📊 읍면동별 지표 비교 (자동 정렬 가로 막대그래프)</h4>
@@ -462,16 +462,19 @@
                       <option value="공장증감">등록공장 증감 (개)</option>
                     </select>
                   </div>
-                  <div class="h-[460px] relative"><canvas id="indRegionChart"></canvas></div>
+                  <div class="h-[520px] md:h-[460px] relative"><canvas id="indRegionChart"></canvas></div>
                 </div>
 
-                <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm">
-                  <h4 class="text-base font-extrabold text-gray-900 mb-4">📋 16개 읍면동 세부 지표 통합표</h4>
+                <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 shadow-sm">
+                  <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-base font-extrabold text-gray-900">📋 16개 읍면동 세부 지표 통합표</h4>
+                    <span class="text-xs font-bold text-nyjSkyBlue md:hidden">← 좌우 스크롤 →</span>
+                  </div>
                   <div class="overflow-x-auto rounded-2xl border border-gray-200">
                     <table class="w-full text-right border-collapse text-sm">
                       <thead>
                         <tr class="bg-gray-100 text-gray-800 border-b-2 border-gray-300">
-                          <th class="p-3.5 text-center font-extrabold whitespace-nowrap">읍면동</th>
+                          <th class="p-3 md:p-3.5 text-center font-extrabold whitespace-nowrap sticky left-0 bg-gray-100 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">읍면동</th>
                           <th class="p-3.5 font-extrabold whitespace-nowrap">활동기업</th>
                           <th class="p-3.5 font-extrabold whitespace-nowrap">법인 수</th>
                           <th class="p-3.5 font-extrabold whitespace-nowrap">종사자 수</th>
@@ -491,23 +494,26 @@
               <!-- 탭 3: 핵심업종 및 5개 시군 비교 -->
               <div id="ind-tab-comparison" class="hidden space-y-8">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm">
+                  <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 shadow-sm">
                     <h4 class="text-base font-extrabold text-gray-900 mb-4">🏢 핵심 5개 업종 최근 1년 증감 (기업 수 vs 종사자 수)</h4>
-                    <div class="h-80 relative"><canvas id="indCoreIndustryChart"></canvas></div>
+                    <div class="h-64 sm:h-72 md:h-80 relative"><canvas id="indCoreIndustryChart"></canvas></div>
                   </div>
-                  <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm">
+                  <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 shadow-sm">
                     <h4 class="text-base font-extrabold text-gray-900 mb-4">🏙️ 연계 5개 시군 활동기업 수 및 제조업 비중 비교</h4>
-                    <div class="h-80 relative"><canvas id="indCityCompChart"></canvas></div>
+                    <div class="h-64 sm:h-72 md:h-80 relative"><canvas id="indCityCompChart"></canvas></div>
                   </div>
                 </div>
 
-                <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-sm">
-                  <h4 class="text-base font-extrabold text-gray-900 mb-4">📋 연계 5개 시군 주요 지표 비교표</h4>
+                <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 shadow-sm">
+                  <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-base font-extrabold text-gray-900">📋 연계 5개 시군 주요 지표 비교표</h4>
+                    <span class="text-xs font-bold text-nyjSkyBlue md:hidden">← 좌우 스크롤 →</span>
+                  </div>
                   <div class="overflow-x-auto rounded-2xl border border-gray-200">
                     <table class="w-full text-right border-collapse text-sm">
                       <thead>
                         <tr class="bg-gray-100 text-gray-800 border-b-2 border-gray-300">
-                          <th class="p-3.5 text-center font-extrabold">시군명</th>
+                          <th class="p-3 md:p-3.5 text-center font-extrabold whitespace-nowrap sticky left-0 bg-gray-100 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">시군명</th>
                           <th class="p-3.5 font-extrabold">활동기업 수</th>
                           <th class="p-3.5 font-extrabold">증가율(%)</th>
                           <th class="p-3.5 font-extrabold">제조업 비중(%)</th>
