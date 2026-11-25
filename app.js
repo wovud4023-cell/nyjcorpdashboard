@@ -103,9 +103,9 @@ async function fetchExcelData() {
           let parsedPlans = [];
           if (cols[14]) {
               try { parsedPlans = JSON.parse(cols[14]); } 
-              catch (e) { parsedPlans = [{ title: '세부 지원내용', budget: (totalBudget > 0 ? (totalBudget / 1000).toLocaleString() + '천원' : '비예산'), desc: cols[10] || '-' }]; }
+              catch (e) { parsedPlans = [{ title: '세부 지원내용', budget: (totalBudget > 0 ? totalBudget.toLocaleString() + '천원' : '비예산'), desc: cols[10] || '-' }]; }
           } else {
-              parsedPlans = [{ title: '세부 지원내용', budget: (totalBudget > 0 ? (totalBudget / 1000).toLocaleString() + '천원' : '비예산'), desc: cols[10] || '-' }];
+              parsedPlans = [{ title: '세부 지원내용', budget: (totalBudget > 0 ? totalBudget.toLocaleString() + '천원' : '비예산'), desc: cols[10] || '-' }];
           }
           
           PROJECTS_DATA.push({
@@ -115,7 +115,7 @@ async function fetchExcelData() {
             catSub: catInfo.sub,
             title: cols[1] || '-',
             shortTitle: cols[2] || '-',
-            badge: totalBudget > 0 ? (totalBudget / 1000).toLocaleString() + '천원' : '비예산',
+            badge: totalBudget > 0 ? totalBudget.toLocaleString() + '천원' : '비예산',
             finance: {
               total: totalBudget,
               city: parseInt(cols[4]) || 0,
