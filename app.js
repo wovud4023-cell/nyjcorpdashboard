@@ -23,24 +23,63 @@ let barChartInst = null;
 // 'sos8220'의 SHA-256 해시값 
 const TARGET_HASH = "43ca49cf349f794f591fdc429a0801a628dfc7bbf4f5cbcc03c09578136f33d1"; 
 
+function resizeAllCharts() {
+  [donutChartInst, barChartInst, indCharts.ts, indCharts.commute, indCharts.region, indCharts.core, indCharts.city].forEach(ch => {
+    if (ch && typeof ch.resize === 'function') ch.resize();
+  });
+}
+
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('overlay');
   if (window.innerWidth <= 768) {
+    sidebar.classList.remove('-ml-80');
     sidebar.classList.toggle('-translate-x-full');
     overlay.classList.toggle('hidden');
   } else {
     // Desktop: collapse to the left by applying negative margin
+    sidebar.classList.remove('-translate-x-full');
+    overlay.classList.add('hidden');
     sidebar.classList.toggle('-ml-80');
+    // Wait for 300ms CSS transition to complete, then smoothly resize charts
+    setTimeout(resizeAllCharts, 320);
   }
 }
 
+let resizeTimer = null;
+let lastIsMobileChart = window.innerWidth < 640;
+
 window.addEventListener('resize', () => {
-  if (window.innerWidth > 768) {
-    document.getElementById('sidebar').classList.remove('-translate-x-full');
-    document.getElementById('overlay').classList.add('hidden');
-    // Ensure sidebar is visible on resize to desktop if it wasn't toggled off explicitly
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  if (sidebar && overlay) {
+    if (window.innerWidth > 768) {
+      sidebar.classList.remove('-translate-x-full');
+      overlay.classList.add('hidden');
+    } else {
+      sidebar.classList.remove('-ml-80');
+      if (overlay.classList.contains('hidden')) {
+        sidebar.classList.add('-translate-x-full');
+      }
+    }
   }
+
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const nowIsMobileChart = window.innerWidth < 640;
+    const indView = document.getElementById('view-industry');
+    const isIndActive = indView && !indView.classList.contains('hidden');
+
+    if (nowIsMobileChart !== lastIsMobileChart) {
+      lastIsMobileChart = nowIsMobileChart;
+      if (isIndActive) {
+        renderIndustryTimeseriesCharts();
+        renderIndustryComparisonCharts();
+        renderIndustryRegionChart();
+      }
+    }
+    resizeAllCharts();
+  }, 150);
 });
 
 async function fetchExcelData() {

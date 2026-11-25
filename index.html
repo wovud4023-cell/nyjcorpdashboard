@@ -11,7 +11,7 @@
   <!-- SheetJS -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <!-- 로컬 app.js 연결 -->
-  <script src="app.js?v=6" defer></script>
+  <script src="app.js?v=7" defer></script>
   
   <script>
     tailwind.config = {
@@ -48,6 +48,9 @@
   </script>
   <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    html {
+      font-size: clamp(13px, 0.72rem + 0.35vw, 16px);
+    }
     body { 
       font-family: 'Pretendard', sans-serif; 
       background: linear-gradient(135deg, #f0f4f8 0%, #e0e8f0 100%);
@@ -289,10 +292,10 @@
           </div>
 
           <!-- Cards Grid -->
-          <div id="searchableCardsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"></div>
+          <div id="searchableCardsGrid" class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,290px),1fr))] gap-5 md:gap-8"></div>
 
           <!-- Charts -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
+          <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,400px),1fr))] gap-6 md:gap-8 mt-8 md:mt-10">
             <div class="glass-card rounded-3xl p-8 relative overflow-hidden group border border-white/60 shadow-lg">
               <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-nyjBlue/5 to-transparent rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-500"></div>
               <h3 class="text-lg font-extrabold text-gray-800 mb-8 flex justify-between items-center">
@@ -322,7 +325,7 @@
             <span id="detail-proj-agency" class="bg-blue-50 text-blue-800 px-5 py-3 rounded-2xl text-sm font-extrabold border border-blue-200 whitespace-nowrap shadow-sm"></span>
           </div>
 
-          <div class="grid grid-cols-2 md:grid-cols-6 gap-5">
+          <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,140px),1fr))] gap-3.5 md:gap-5">
             <div class="glass-card p-5 rounded-3xl text-center shadow-sm"><div class="text-sm text-gray-600 font-bold mb-2">총 사업비</div><div id="fin-total" class="text-lg md:text-xl font-black text-gray-900"></div></div>
             <div class="glass-card p-5 rounded-3xl text-center shadow-sm"><div class="text-sm text-gray-600 font-bold mb-2">시비</div><div id="fin-city" class="text-lg md:text-xl font-black text-nyjBlue"></div></div>
             <div class="glass-card p-5 rounded-3xl text-center shadow-sm"><div class="text-sm text-gray-600 font-bold mb-2">도비</div><div id="fin-prov" class="text-lg md:text-xl font-black text-nyjGreen"></div></div>
@@ -337,7 +340,7 @@
               <button id="tab-btn-history" class="flex-1 py-5 text-base md:text-lg font-extrabold text-gray-500 border-b-4 border-transparent hover:bg-white/90 transition-colors" onclick="switchDetailTab('history')">📜 신청·문의처</button>
             </div>
             <div class="p-8 bg-white/40">
-              <div id="detail-tab-plan" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+              <div id="detail-tab-plan" class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-4 md:gap-6"></div>
               <div id="detail-tab-history" class="hidden">
                 <div id="detail-history-custom" class="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm"></div>
               </div>
@@ -429,7 +432,7 @@
           </div>
 
           <!-- KPI 요약 카드 -->
-          <div id="industry-kpi-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5 md:gap-6"></div>
+          <div id="industry-kpi-grid" class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-3.5 md:gap-6"></div>
 
           <!-- 세부 분석 탭 -->
           <div class="glass-card rounded-3xl overflow-hidden shadow-lg border border-white/80">
@@ -443,7 +446,7 @@
             <div class="p-4 md:p-8 bg-white/40">
               <!-- 탭 1: 시계열 추이 -->
               <div id="ind-tab-timeseries" class="space-y-8">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] gap-5 md:gap-8">
                   <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 shadow-sm">
                     <h4 class="text-base font-extrabold text-gray-900 mb-4">📊 활동기업 수 vs 종사자 수 추이 (2023.01 ~ 2026.05)</h4>
                     <div class="h-64 sm:h-72 md:h-80 relative"><canvas id="indTimeseriesChart"></canvas></div>
@@ -502,7 +505,7 @@
 
               <!-- 탭 3: 핵심업종 및 5개 시군 비교 -->
               <div id="ind-tab-comparison" class="hidden space-y-8">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] gap-5 md:gap-8">
                   <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 shadow-sm">
                     <h4 class="text-base font-extrabold text-gray-900 mb-4">🏢 핵심 5개 업종 최근 1년 증감 (기업 수 vs 종사자 수)</h4>
                     <div class="h-64 sm:h-72 md:h-80 relative"><canvas id="indCoreIndustryChart"></canvas></div>
@@ -540,7 +543,7 @@
 
               <!-- 탭 4: 종합진단 및 4대 정책방향 -->
               <div id="ind-tab-policy" class="hidden space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-4 md:gap-6">
                   <div class="bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl border-l-[6px] md:border-l-8 border-l-nyjBlue border border-gray-200 shadow-sm">
                     <span class="text-xs font-extrabold bg-blue-100 text-nyjBlue px-3 py-1 rounded-full">정책 방향 01</span>
                     <h4 class="text-base md:text-lg font-extrabold text-gray-900 mt-2.5 md:mt-3 mb-1.5 md:mb-2">고용 사다리 지원 (5~29인 집중)</h4>
