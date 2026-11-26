@@ -11,7 +11,7 @@
   <!-- SheetJS -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <!-- 로컬 app.js 연결 -->
-  <script src="app.js?v=8" defer></script>
+  <script src="app.js?v=9" defer></script>
   
   <script>
     tailwind.config = {
@@ -123,7 +123,7 @@
       <h3 class="text-xl md:text-2xl font-black text-gray-900 mb-3 md:mb-4 tracking-tight">남양주시 관계자용 페이지</h3>
       <p class="text-sm md:text-base text-gray-600 font-bold mb-6 md:mb-10 leading-relaxed bg-gray-100 p-3 md:p-4 rounded-xl border border-gray-200">인증번호를 입력하세요.</p>
       
-      <input type="password" id="auth-password" class="w-full bg-white border-2 border-gray-300 rounded-2xl px-4 py-3 md:px-5 md:py-4 text-center text-gray-900 text-lg md:text-xl font-bold focus:outline-none focus:border-nyjSkyBlue focus:ring-4 focus:ring-blue-100 mb-4 md:mb-6 transition-all shadow-inner" placeholder="인증번호 입력" onkeypress="if(event.key === 'Enter') verifyPassword();">
+      <input type="password" id="auth-password" aria-label="관계자 인증번호 입력" class="w-full bg-white border-2 border-gray-300 rounded-2xl px-4 py-3 md:px-5 md:py-4 text-center text-gray-900 text-lg md:text-xl font-bold focus:outline-none focus:border-nyjSkyBlue focus:ring-4 focus:ring-blue-100 mb-4 md:mb-6 transition-all shadow-inner" placeholder="인증번호 입력" onkeypress="if(event.key === 'Enter') verifyPassword();">
       
       <button class="w-full bg-nyjBlue hover:bg-blue-800 text-white text-base md:text-lg font-extrabold py-3.5 md:py-4 rounded-2xl shadow-lg transition-colors focus:ring-4 focus:ring-blue-200" onclick="verifyPassword()">접속하기</button>
     </div>
@@ -136,7 +136,7 @@
     <aside id="sidebar" class="w-72 md:w-80 glass-panel flex flex-col flex-shrink-0 z-30 transition-all duration-300 transform -translate-x-full md:translate-x-0 absolute md:relative h-full">
       <div class="p-6 border-b border-white/40 flex items-center justify-between bg-white/50">
         <img src="시그니처_국영문_좌우조합_남양주.png" alt="남양주시 로고" class="h-9 md:h-12 object-contain drop-shadow-sm">
-        <button onclick="toggleSidebar()" class="md:hidden text-gray-600 hover:text-nyjBlue">
+        <button type="button" onclick="toggleSidebar()" aria-label="메뉴 닫기" class="md:hidden text-gray-600 hover:text-nyjBlue focus:outline-none focus:ring-2 focus:ring-nyjSkyBlue rounded-lg">
           <svg class="w-5 h-5 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
@@ -145,15 +145,15 @@
       <div class="p-3 border-b border-white/40 bg-white/60 md:hidden">
         <div class="flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-gray-300 focus-within:border-nyjSkyBlue focus-within:ring-2 focus-within:ring-blue-100 shadow-sm">
           <svg class="w-4 h-4 text-nyjBlue flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-          <input type="text" id="sidebarSearch" class="bg-transparent border-none outline-none text-sm w-full placeholder-gray-500 font-bold text-gray-800" placeholder="사업명·내용 검색 (Enter)" oninput="syncSidebarSearch(this.value)" onkeypress="if(event.key==='Enter'){ switchView('dashboard'); }">
-          <button type="button" onclick="syncSidebarSearch(''); document.getElementById('sidebarSearch').value='';" class="text-gray-400 hover:text-gray-600 text-xs font-bold px-1">✕</button>
+          <input type="text" id="sidebarSearch" aria-label="사이드바 사업명 및 내용 검색" class="bg-transparent border-none outline-none text-sm w-full placeholder-gray-500 font-bold text-gray-800" placeholder="사업명·내용 검색 (Enter)" oninput="syncSidebarSearch(this.value)" onkeypress="if(event.key==='Enter'){ switchView('dashboard'); }">
+          <button type="button" aria-label="검색어 지우기" onclick="syncSidebarSearch(''); document.getElementById('sidebarSearch').value='';" class="text-gray-400 hover:text-gray-600 text-xs font-bold px-1">✕</button>
         </div>
       </div>
 
       <div class="flex-1 overflow-y-auto p-4 space-y-8">
         <div>
           <div class="text-sm font-bold text-gray-500 mb-3 px-3 tracking-wider">DASHBOARD</div>
-          <div id="nav-dashboard" class="nav-item-active nav-item-hover p-4 rounded-xl flex justify-between items-center cursor-pointer transition-all" onclick="switchView('dashboard')">
+          <div id="nav-dashboard" role="button" tabindex="0" class="nav-item-active nav-item-hover p-4 rounded-xl flex justify-between items-center cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-nyjSkyBlue" onclick="switchView('dashboard')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchView('dashboard');}">
             <span class="flex items-center gap-2.5 md:gap-3 text-base md:text-lg">
               <svg class="w-5 h-5 md:w-6 md:h-6 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
               2026 총괄 현황
@@ -199,7 +199,7 @@
 
         <div class="pb-8">
           <div class="text-sm font-bold text-gray-500 mb-3 px-3 tracking-wider mt-6">MANAGEMENT</div>
-          <div id="nav-industry" class="nav-item-hover text-gray-700 p-4 rounded-xl flex justify-between items-center cursor-pointer transition-all mb-2" onclick="switchView('industry')">
+          <div id="nav-industry" role="button" tabindex="0" class="nav-item-hover text-gray-700 p-4 rounded-xl flex justify-between items-center cursor-pointer transition-all mb-2 focus:outline-none focus:ring-2 focus:ring-nyjSkyBlue" onclick="switchView('industry')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchView('industry');}">
             <span class="flex items-center gap-2.5 md:gap-3 text-base md:text-lg font-bold">
               <svg class="w-5 h-5 md:w-6 md:h-6 text-nyjSkyBlue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
               산업구조·기업현황
@@ -208,7 +208,7 @@
               통계분석
             </span>
           </div>
-          <div id="nav-grievance" class="nav-item-hover text-gray-700 p-4 rounded-xl flex justify-between items-center cursor-pointer transition-all" onclick="switchView('grievance')">
+          <div id="nav-grievance" role="button" tabindex="0" class="nav-item-hover text-gray-700 p-4 rounded-xl flex justify-between items-center cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-nyjSkyBlue" onclick="switchView('grievance')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchView('grievance');}">
             <span class="flex items-center gap-2.5 md:gap-3 text-base md:text-lg font-bold">
               <svg class="w-5 h-5 md:w-6 md:h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
               기업애로 접수·관리
@@ -228,7 +228,7 @@
       <header class="glass-panel border-b-0 border-white/50 px-3.5 py-3 md:px-6 md:py-5 flex items-center justify-between z-10 mx-2.5 mt-2.5 md:mx-4 md:mt-4 rounded-2xl md:rounded-3xl shadow-md">
         <div class="flex items-center gap-3 md:gap-5">
           <!-- 햄버거 버튼 -->
-          <button onclick="toggleSidebar()" class="p-2 md:p-2.5 text-nyjBlue bg-white/70 rounded-xl hover:bg-white transition-colors shadow-sm focus:ring-4 focus:ring-blue-100">
+          <button type="button" onclick="toggleSidebar()" aria-label="메뉴 열기 및 닫기" class="p-2 md:p-2.5 text-nyjBlue bg-white/70 rounded-xl hover:bg-white transition-colors shadow-sm focus:ring-4 focus:ring-blue-100">
             <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
           </button>
           <div>
@@ -277,11 +277,11 @@
               <div class="bg-blue-100 p-3 rounded-xl text-nyjBlue">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
               </div>
-              <input type="text" id="dashboardSearch" class="bg-transparent border-none outline-none text-base w-full md:w-80 placeholder-gray-500 font-bold text-gray-800" placeholder="사업명 또는 내용으로 검색하세요" oninput="filterDashboard()">
+              <input type="text" id="dashboardSearch" aria-label="사업명 또는 내용 검색" class="bg-transparent border-none outline-none text-base w-full md:w-80 placeholder-gray-500 font-bold text-gray-800" placeholder="사업명 또는 내용으로 검색하세요" oninput="filterDashboard()">
             </div>
             <div class="w-full md:w-auto flex gap-4 items-center">
               <span id="searchResultCount" class="text-base font-bold text-gray-600 whitespace-nowrap hidden md:block bg-gray-100 px-4 py-2 rounded-xl"></span>
-              <select id="categoryFilter" class="bg-white border border-gray-300 text-base rounded-2xl px-5 py-3 font-bold text-gray-800 outline-none focus:border-nyjSkyBlue focus:ring-4 focus:ring-blue-100 w-full md:w-auto transition-all shadow-sm cursor-pointer" onchange="filterDashboard()">
+              <select id="categoryFilter" aria-label="지원 분야 필터" class="bg-white border border-gray-300 text-base rounded-2xl px-5 py-3 font-bold text-gray-800 outline-none focus:border-nyjSkyBlue focus:ring-4 focus:ring-blue-100 w-full md:w-auto transition-all shadow-sm cursor-pointer" onchange="filterDashboard()">
                 <option value="all">🔍 전체 분야 보기</option>
                 <option value="기술지원">1. 기술지원</option>
                 <option value="자금지원">2. 자금지원</option>
@@ -302,7 +302,7 @@
                 <span>📊 분야별 예산 비중</span>
                 <span id="chart-donut-desc" class="text-sm bg-gray-100 px-3 py-1.5 rounded-lg text-gray-600 font-bold border border-gray-200">총 0.00억</span>
               </h3>
-              <div class="h-72 relative"><canvas id="categoryDonutChart"></canvas></div>
+              <div class="h-72 relative"><canvas id="categoryDonutChart" role="img" aria-label="분야별 예산 비중 도넛 차트"></canvas></div>
             </div>
             <div class="glass-card rounded-3xl p-8 relative overflow-hidden group border border-white/60 shadow-lg">
                <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-nyjGreen/5 to-transparent rounded-bl-full -z-10 group-hover:scale-110 transition-transform duration-500"></div>
@@ -310,7 +310,7 @@
                 <span>📈 재원 분담 현황</span>
                 <span class="text-sm bg-gray-100 px-3 py-1.5 rounded-lg text-gray-600 font-bold border border-gray-200">단위: 억원</span>
               </h3>
-              <div class="h-72 relative"><canvas id="categoryBarChart"></canvas></div>
+              <div class="h-72 relative"><canvas id="categoryBarChart" role="img" aria-label="분야별 시비, 도비, 국비 재원 분담 현황 막대 차트"></canvas></div>
             </div>
           </div>
         </div>
@@ -367,7 +367,7 @@
                </div>
             </div>
             <div class="flex gap-3 w-full lg:w-auto">
-              <input type="file" id="excelUpload" accept=".csv, .xlsx, .xls" class="hidden" onchange="handleExcelUpload(event)">
+              <input type="file" id="excelUpload" aria-label="엑셀 데이터 파일 업로드" accept=".csv, .xlsx, .xls" class="hidden" onchange="handleExcelUpload(event)">
               <button class="flex-1 lg:flex-none bg-gray-800 hover:bg-gray-900 text-white text-xs sm:text-sm md:text-base font-bold py-2.5 px-3.5 md:py-3.5 md:px-6 rounded-xl md:rounded-2xl shadow-md transition-colors border border-gray-700" onclick="document.getElementById('excelUpload').click();">📁 엑셀 갱신</button>
               <button class="flex-1 lg:flex-none bg-white hover:bg-gray-50 text-gray-800 border-2 border-gray-300 text-xs sm:text-sm md:text-base font-bold py-2.5 px-3.5 md:py-3.5 md:px-6 rounded-xl md:rounded-2xl shadow-sm transition-colors" onclick="clearGrievanceData();">🔄 서버 연동</button>
             </div>
@@ -388,7 +388,7 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
               <h4 class="text-lg font-extrabold text-gray-900">📋 접수 현황 목록</h4>
               <div class="flex items-center gap-4 w-full sm:w-auto">
-                <select id="regionFilter" class="bg-white border-2 border-gray-300 text-sm font-bold rounded-xl px-4 py-2.5 outline-none focus:border-red-500 shadow-sm flex-1 sm:flex-none" onchange="filterGrievanceTable()"></select>
+                <select id="regionFilter" aria-label="기업애로 지역 필터" class="bg-white border-2 border-gray-300 text-sm font-bold rounded-xl px-4 py-2.5 outline-none focus:border-red-500 shadow-sm flex-1 sm:flex-none" onchange="filterGrievanceTable()"></select>
                 <span id="grievance-count" class="text-sm font-extrabold text-gray-700 bg-gray-200 px-4 py-2.5 rounded-xl shadow-inner whitespace-nowrap"></span>
               </div>
             </div>
@@ -449,11 +449,11 @@
                 <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] gap-5 md:gap-8">
                   <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 shadow-sm">
                     <h4 class="text-base font-extrabold text-gray-900 mb-4">📊 활동기업 수 vs 종사자 수 추이 (2023.01 ~ 2026.05)</h4>
-                    <div class="h-64 sm:h-72 md:h-80 relative"><canvas id="indTimeseriesChart"></canvas></div>
+                    <div class="h-64 sm:h-72 md:h-80 relative"><canvas id="indTimeseriesChart" role="img" aria-label="남양주시 활동기업 수 및 종사자 수 시계열 추이 차트"></canvas></div>
                   </div>
                   <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 shadow-sm">
                     <h4 class="text-base font-extrabold text-gray-900 mb-4">🚆 종사자 거주지 구성 및 타 시군 거주 비중(%)</h4>
-                    <div class="h-64 sm:h-72 md:h-80 relative"><canvas id="indCommuteChart"></canvas></div>
+                    <div class="h-64 sm:h-72 md:h-80 relative"><canvas id="indCommuteChart" role="img" aria-label="남양주 거주 및 타 시군 거주 종사자 구성과 비중 추이 차트"></canvas></div>
                   </div>
                 </div>
               </div>
@@ -466,7 +466,7 @@
                       <h4 class="text-base font-extrabold text-gray-900">📊 읍면동별 지표 비교 (자동 정렬 가로 막대그래프)</h4>
                       <p class="text-xs text-gray-500 font-bold mt-1">지표를 선택하면 16개 읍면동이 자동으로 정렬되어 표시됩니다.</p>
                     </div>
-                    <select id="indRegionMetricSelect" class="bg-gray-50 border-2 border-gray-300 text-sm font-extrabold text-nyjBlue rounded-xl px-4 py-2.5 outline-none focus:border-nyjSkyBlue shadow-sm cursor-pointer" onchange="renderIndustryRegionChart()">
+                    <select id="indRegionMetricSelect" aria-label="읍면동 비교 지표 선택" class="bg-gray-50 border-2 border-gray-300 text-sm font-extrabold text-nyjBlue rounded-xl px-4 py-2.5 outline-none focus:border-nyjSkyBlue shadow-sm cursor-pointer" onchange="renderIndustryRegionChart()">
                       <option value="활동기업수">활동기업 수 (개)</option>
                       <option value="종사자수">종사자 수 (명)</option>
                       <option value="남양주근무비중">남양주 근무 비중 (%)</option>
@@ -474,7 +474,7 @@
                       <option value="공장증감">등록공장 증감 (개)</option>
                     </select>
                   </div>
-                  <div class="h-[520px] md:h-[460px] relative"><canvas id="indRegionChart"></canvas></div>
+                  <div class="h-[520px] md:h-[460px] relative"><canvas id="indRegionChart" role="img" aria-label="16개 읍면동별 선택 지표 비교 가로 막대 차트"></canvas></div>
                 </div>
 
                 <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 shadow-sm">
@@ -508,11 +508,11 @@
                 <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] gap-5 md:gap-8">
                   <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 shadow-sm">
                     <h4 class="text-base font-extrabold text-gray-900 mb-4">🏢 핵심 5개 업종 최근 1년 증감 (기업 수 vs 종사자 수)</h4>
-                    <div class="h-64 sm:h-72 md:h-80 relative"><canvas id="indCoreIndustryChart"></canvas></div>
+                    <div class="h-64 sm:h-72 md:h-80 relative"><canvas id="indCoreIndustryChart" role="img" aria-label="핵심 5개 업종 최근 1년 기업 수 및 종사자 수 증감 비교 차트"></canvas></div>
                   </div>
                   <div class="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-200 shadow-sm">
                     <h4 class="text-base font-extrabold text-gray-900 mb-4">🏙️ 연계 5개 시군 활동기업 수 및 제조업 비중 비교</h4>
-                    <div class="h-64 sm:h-72 md:h-80 relative"><canvas id="indCityCompChart"></canvas></div>
+                    <div class="h-64 sm:h-72 md:h-80 relative"><canvas id="indCityCompChart" role="img" aria-label="연계 5개 시군 활동기업 수 및 제조업 비중 비교 차트"></canvas></div>
                   </div>
                 </div>
 

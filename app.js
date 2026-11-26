@@ -218,7 +218,7 @@ function updateDashboardStats() {
 
 function renderSidebarMenu() {
   const makeNavItem = (p, badgeClass) => `
-    <div class="nav-item-hover px-3 py-3 rounded-xl flex justify-between items-center cursor-pointer transition-all border-l-4 border-transparent hover:border-gray-400 gap-3 bg-white/40 mb-2 shadow-sm" id="nav-${p.id}" onclick="openProjectDetail('${p.id}')">
+    <div role="button" tabindex="0" class="nav-item-hover px-3 py-3 rounded-xl flex justify-between items-center cursor-pointer transition-all border-l-4 border-transparent hover:border-gray-400 gap-3 bg-white/40 mb-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-nyjSkyBlue" id="nav-${p.id}" onclick="openProjectDetail('${p.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProjectDetail('${p.id}');}">
       <span class="text-sm text-gray-900 font-extrabold truncate flex-1" title="${p.title}">· ${p.shortTitle}</span>
       <span class="text-xs font-bold px-2 py-1 rounded-lg whitespace-nowrap shadow-sm ${badgeClass}">${p.badge}</span>
     </div>
@@ -273,6 +273,11 @@ async function hashPassword(message) {
 // 전체 대시보드 비밀번호 검증
 async function verifyPassword() {
   const inputEl = document.getElementById("auth-password");
+  if (!inputEl.value.trim()) {
+    alert("인증번호를 입력해 주세요.");
+    inputEl.focus();
+    return;
+  }
   const inputHash = await hashPassword(inputEl.value);
   
   if (inputHash === TARGET_HASH) {
@@ -556,31 +561,54 @@ function filterGrievanceTable() { renderGrievanceTables(GRIEVANCE_DATA); }
 function handleExcelUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
+
+  const fileName = file.name.toLowerCase();
+  if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls') && !fileName.endsWith('.csv')) {
+    alert('지원하지 않는 파일 형식입니다.\n엑셀(.xlsx, .xls) 또는 CSV(.csv) 파일로 다시 시도해 주세요.');
+    event.target.value = '';
+    return;
+  }
+
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
       const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-      let sheetName = workbook.SheetNames.includes('애로사항') ? '애로사항' : workbook.SheetNames[0];
-      GRIEVANCE_DATA.length = 0;
-      XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 }).forEach((cols, idx) => {
-        if (idx === 0 || !cols[0]) return;
-        GRIEVANCE_DATA.push({
-          corpName: cols[1] || cols[0] || '-',
-          location: cols[2] || '-',
-          region: cols[3] || '기타',
-          field: cols[4] || '-',
-          grievanceContent: cols[5] || '-',
-          consultContent: cols[6] || '-',
-          processContent: cols[7] || '-',
-          rawStatus: (cols[8] || '검토').toString().trim()
+      if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+        alert('파일에 읽을 수 있는 시트가 없습니다.\n데이터가 입력된 엑셀 파일인지 확인 후 다시 시도해 주세요.');
+        return;
+      }
+
+      const hasGrievance = workbook.SheetNames.includes('애로사항');
+      const hasIndustry = workbook.SheetNames.some(s => s.startsWith('산업_'));
+      if (!hasGrievance && !hasIndustry) {
+        alert('인식 가능한 시트(애로사항 또는 산업_요약KPI 등)를 찾지 못했습니다.\n기존 data.xlsx 양식의 시트명을 유지해 업로드해 주세요.');
+        return;
+      }
+
+      if (hasGrievance) {
+        GRIEVANCE_DATA.length = 0;
+        XLSX.utils.sheet_to_json(workbook.Sheets['애로사항'], { header: 1 }).forEach((cols, idx) => {
+          if (idx === 0 || !cols[0]) return;
+          GRIEVANCE_DATA.push({
+            corpName: cols[1] || cols[0] || '-',
+            location: cols[2] || '-',
+            region: cols[3] || '기타',
+            field: cols[4] || '-',
+            grievanceContent: cols[5] || '-',
+            consultContent: cols[6] || '-',
+            processContent: cols[7] || '-',
+            rawStatus: (cols[8] || '검토').toString().trim()
+          });
         });
-      });
+      }
       parseIndustrySheets(workbook);
       updateRegionSelect();
       renderGrievanceTables(GRIEVANCE_DATA);
       renderIndustryView();
       alert('업로드된 엑셀 파일로 현황판이 성공적으로 갱신되었습니다.');
-    } catch (err) { alert('엑셀 처리 중 오류가 발생했습니다.'); }
+    } catch (err) {
+      alert('엑셀 파일을 읽는 중 오류가 발생했습니다.\n파일이 손상되었거나 암호가 설정되어 있지 않은지 확인한 뒤 .xlsx 형식으로 다시 저장해 시도해 주세요.');
+    }
   };
   reader.readAsArrayBuffer(file);
   event.target.value = '';
@@ -938,6 +966,7 @@ function renderIndustryRegionChart() {
     return '#009fe3';
   });
 
+  ctx.setAttribute('aria-label', `16개 읍면동별 ${labelMap[metric] || metric} 비교 가로 막대 차트`);
   if (indCharts.region) indCharts.region.destroy();
   indCharts.region = new Chart(ctx.getContext('2d'), {
     type: 'bar',
